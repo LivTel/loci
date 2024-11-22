@@ -1,0 +1,13 @@
+# $Header$
+
+SHELL                   =       /bin/sh
+LOCI_HOME		=	loci
+LOCI_SRC_HOME		=	$(LT_SRC_HOME)/$(LOCI_HOME)
+LOCI_BIN_HOME       	=       $(LT_BIN_HOME)/$(LOCI_HOME)
+LOCI_DOC_HOME		=	$(LT_DOC_HOME)/$(LOCI_HOME)
+
+# log_udp library (log_udp.h is included for verbosity settings)
+LOG_UDP_HOME		= log_udp
+LOG_UDP_SRC_HOME	= $(LT_SRC_HOME)/$(LOG_UDP_HOME)
+LOG_UDP_CFLAGS		= -I$(LOG_UDP_SRC_HOME)/include
+
