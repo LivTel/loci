@@ -86,6 +86,7 @@ public class AbortExposureCommand extends Command implements Runnable
 				System.exit(1);
 			}
 			System.out.println("Finished:"+command.getCommandFinished());
+			System.out.println("Http Response Code (200 on success):"+command.getHttpResponseCode());
 			System.out.println("Return Status:"+command.getReturnStatus());
 			System.out.println("Is Return Status Success:"+command.isReturnStatusSuccess());
 			System.out.println("Message:"+command.getMessage());
