@@ -69,7 +69,7 @@ public class LociStatus
 	 */
 	private ISS_TO_INST currentCommand = null;
 	/**
-	 * A list of properties held in the properties file. This contains configuration information in liric
+	 * A list of properties held in the properties file. This contains configuration information in loci
 	 * that needs to be changed irregularily.
 	 */
 	private Properties properties = null;
@@ -253,7 +253,7 @@ public class LociStatus
 
 	/**
 	 * Method to change (increment) the unique ID number of the last ngat.phase2.LociConfig instance to 
-	 * successfully configure the Liric camera.
+	 * successfully configure the Loci camera.
 	 * This is done by calling <i>configId.increment()</i>.
 	 * @see #configId
 	 * @see ngat.util.PersistentUniqueInteger#increment
@@ -269,7 +269,7 @@ public class LociStatus
 
 	/**
 	 * Method to get the unique config ID number of the last
-	 * ngat.phase2.LociConfig instance to successfully configure the Liric camera.
+	 * ngat.phase2.LociConfig instance to successfully configure the Loci camera.
 	 * @return The unique config ID number.
 	 * This is done by calling <i>configId.get()</i>.
 	 * @see #configId
@@ -632,7 +632,7 @@ public class LociStatus
 		}
 		catch(NumberFormatException e)
 		{
-			retval = LiricConstants.LOCI_DEFAULT_THREAD_PRIORITY_SERVER;
+			retval = LociConstants.LOCI_DEFAULT_THREAD_PRIORITY_SERVER;
 		}
 		return retval;
 	}

@@ -12,7 +12,6 @@ import java.util.*;
 import ngat.net.*;
 import ngat.util.*;
 import ngat.util.logging.*;
-import ngat.loci.command.*;
 import ngat.message.ISS_INST.*;
 import ngat.message.INST_DP.*;
 

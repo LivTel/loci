@@ -9,10 +9,8 @@ JARLIBDIR	= $(LT_JAVALIB_HOME)
 LIBDIR		= $(LOCI_BIN_HOME)/java/
 DOCSDIR 	= $(LOCI_DOC_HOME)/javadocs/
 DOCFLAGS 	= -version -author -private
-JAVASRCS 	= ngat/loci/ccd/*.java
-#ngat/loci/*.java 
-JAVAPKGS	= ngat.loci.ccd
-#ngat.loci
+JAVASRCS 	= ngat/loci/*.java ngat/loci/ccd/*.java
+JAVAPKGS	= ngat.loci ngat.loci.ccd
 
 JAVADOCS 	= $(JAVASRCS:%.java=$(DOCSDIR)/%.html)
 OBJS 		= $(JAVASRCS:%.java=$(LIBDIR)/%.class)

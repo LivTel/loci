@@ -9,12 +9,12 @@ BINDIR 		= $(LOCI_BIN_HOME)/java/$(PACKAGEDIR)
 CONFIG_BINDIR 	= $(LOCI_BIN_HOME)/java
 SCRIPT_BINDIR 	= $(LOCI_BIN_HOME)/java
 SRCS 		= $(MAIN_SRCS) $(IMPL_SRCS)
-MAIN_SRCS 	= #LociConstants.java \
+MAIN_SRCS 	= LociConstants.java \
 		Loci.java LociStatus.java LociTCPClientConnectionThread.java \
 		LociTCPServerConnectionThread.java LociTCPServer.java LociREBOOTQuitThread.java
 IMPL_SRCS = $(BASE_IMPL_SRCS) $(CALIBRATE_IMPL_SRCS) $(EXPOSE_IMPL_SRCS) $(INTERRUPT_IMPL_SRCS) $(SETUP_IMPL_SRCS)
-BASE_IMPL_SRCS		= #CommandImplementation.java JMSCommandImplementation.java UnknownCommandImplementation.java \
-			HardwareImplementation.java
+BASE_IMPL_SRCS		= CommandImplementation.java JMSCommandImplementation.java UnknownCommandImplementation.java \
+			#HardwareImplementation.java
 CALIBRATE_IMPL_SRCS 	= #CALIBRATEImplementation.java BIASImplementation.java DARKImplementation.java \
 			  MULTBIASImplementation.java MULTDARKImplementation.java
 EXPOSE_IMPL_SRCS	= #MULTRUNImplementation.java 
@@ -23,7 +23,8 @@ INTERRUPT_IMPL_SRCS 	= #ABORTImplementation.java GET_STATUSImplementation.java R
 SETUP_IMPL_SRCS		= #CONFIGImplementation.java
 OBJS 		= $(SRCS:%.java=$(BINDIR)/%.class)
 
-CONFIG_SRCS	= #loci1.loci.net.properties loci1.loci.properties loci1.fits.properties
+CONFIG_SRCS	= loci1.loci.net.properties loci1.loci.properties loci1.fits.properties \
+		  ltdevx64.loci.net.properties ltdevx64.loci.properties ltdevx64.fits.properties
 
 CONFIG_OBJS	= $(CONFIG_SRCS:%.properties=$(CONFIG_BINDIR)/%.properties)
 SCRIPT_SRCS	= 
@@ -41,7 +42,7 @@ $(BINDIR)/%.class:%.java
 #
 # configuration files
 #
-config: $(CONFIG_OBJS) $(INI_OBJS)
+config: $(CONFIG_OBJS)
 
 $(CONFIG_BINDIR)/%.properties: %.properties
 	$(CP) $< $@
