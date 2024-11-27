@@ -1,5 +1,5 @@
 // CommandImplementation.java
-// $Header$
+// $Id$
 package ngat.loci;
 
 import ngat.message.base.*;

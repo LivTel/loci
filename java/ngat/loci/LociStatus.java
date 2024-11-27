@@ -1,5 +1,5 @@
 // LociStatus.java
-// $Header$
+// $Id$
 package ngat.loci;
 
 import java.lang.*;
