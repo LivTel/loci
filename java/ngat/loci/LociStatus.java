@@ -44,6 +44,43 @@ public class LociStatus
 	 */
 	private final static String DEFAULT_FILTER_PROPERTY_FILE_NAME = "/icc/config/filter.properties";
 	/**
+	 * The filename to use for loading network property configuration. Defaults to DEFAULT_NET_PROPERTY_FILE_NAME.
+	 * Used by the load() method.
+	 * @see #DEFAULT_NET_PROPERTY_FILE_NAME
+	 * @see #load
+	 */
+	private String netPropertyFilename = DEFAULT_NET_PROPERTY_FILE_NAME;
+	/**
+	 * The filename to use for loading Loci property configuration. Defaults to DEFAULT_PROPERTY_FILE_NAME.
+	 * Used by the load() method.
+	 * @see #DEFAULT_PROPERTY_FILE_NAME
+	 * @see #load
+	 */
+	private String lociPropertyFilename = DEFAULT_PROPERTY_FILE_NAME;
+	/**
+	 * The filename to use for loading FITS property configuration. Defaults to DEFAULT_FITS_PROPERTY_FILE_NAME.
+	 * Used by the load() method.
+	 * @see #DEFAULT_FITS_PROPERTY_FILE_NAME
+	 * @see #load
+	 */
+	private String fitsPropertyFilename = DEFAULT_FITS_PROPERTY_FILE_NAME;
+	/**
+	 * The filename to use for loading the current filter property configuration. 
+	 * Defaults to DEFAULT_CURRENT_FILTER_PROPERTY_FILE_NAME.
+	 * Used by the load() method.
+	 * @see #DEFAULT_CURRENT_FILTER_PROPERTY_FILE_NAME
+	 * @see #load
+	 */
+	private String currentFilterPropertyFilename = DEFAULT_CURRENT_FILTER_PROPERTY_FILE_NAME;
+	/**
+	 * The filename to use for loading the filter property configuration. 
+	 * Defaults to DEFAULT_FILTER_PROPERTY_FILE_NAME.
+	 * Used by the load() method.
+	 * @see #DEFAULT_CURRENT_FILTER_PROPERTY_FILE_NAME
+	 * @see #load
+	 */
+	private String filterPropertyFilename = DEFAULT_FILTER_PROPERTY_FILE_NAME;
+	/**
 	 * The logging level. An absolute filter is used by the loggers. See:
 	 * <ul>
 	 * <li><a href="http://ltdevsrv.livjm.ac.uk/~dev/log_udp/cdocs/log_udp.html#LOG_VERBOSITY">LOG_VERBOSITY</a>
@@ -98,50 +135,104 @@ public class LociStatus
 	}
 
 	/**
+	 * Set the network property filename, that load() uses to load Loci network configuration.
+	 * This method should be called before the load() method is invoked.
+	 * @param filename A string, the filename of the network properties file.
+	 * @see #netPropertyFilename
+	 * @see #load
+	 */
+	public void setNetworkPropertyFilename(String filename)
+	{
+		netPropertyFilename = filename;
+	}
+	
+	/**
+	 * Set the main Loci property filename, that load() uses to load Loci configuration.
+	 * This method should be called before the load() method is invoked.
+	 * @param filename A string, the filename of the main Loci properties file.
+	 * @see #lociPropertyFilename
+	 * @see #load
+	 */
+	public void setPropertyFilename(String filename)
+	{
+		lociPropertyFilename = filename;
+	}
+	
+	/**
+	 * Set the FITS property filename, that load() uses to load Loci FITS configuration.
+	 * This method should be called before the load() method is invoked.
+	 * @param filename A string, the filename of the FITS properties file.
+	 * @see #fitsPropertyFilename
+	 * @see #load
+	 */
+	public void setFitsPropertyFilename(String filename)
+	{
+		fitsPropertyFilename = filename;
+	}
+	
+	/**
+	 * Set the per-semester current filter property filename, that load() uses to load the 
+	 * Loci currently installed filter configuration.
+	 * This method should be called before the load() method is invoked.
+	 * @param filename A string, the filename of the current filter properties file.
+	 * @see #currentFilterPropertyFilename
+	 * @see #load
+	 */
+	public void setCurrentFilterPropertyFilename(String filename)
+	{
+		currentFilterPropertyFilename = filename;
+	}
+	
+	/**
+	 * Set the filter database property filename, that load() uses to load the Loci filter database configuration.
+	 * This method should be called before the load() method is invoked.
+	 * @param filename A string, the filename of the filter database properties file.
+	 * @see #filterPropertyFilename
+	 * @see #load
+	 */
+	public void setFilterPropertyFilename(String filename)
+	{
+		filterPropertyFilename = filename;
+	}
+	
+	/**
 	 * The load method for the class. This loads the property file from disc, using the specified
 	 * filename. Any old properties are first cleared.
 	 * The configId unique persistent integer is then initialised, using a filename stored in the properties.
 	 * @see #properties
 	 * @see #initialiseConfigId
-	 * @see #DEFAULT_NET_PROPERTY_FILE_NAME
-	 * @see #DEFAULT_PROPERTY_FILE_NAME
-	 * @see #DEFAULT_FITS_PROPERTY_FILE_NAME
-	 * @see #DEFAULT_CURRENT_FILTER_PROPERTY_FILE_NAME
-	 * @see #DEFAULT_FILTER_PROPERTY_FILE_NAME
+	 * @see #netPropertyFilename
+	 * @see #lociPropertyFilename
+	 * @see #fitsPropertyFilename
+	 * @see #currentFilterPropertyFilename
+	 * @see #filterPropertyFilename
 	 * @exception FileNotFoundException Thrown if a configuration file is not found.
 	 * @exception IOException Thrown if an IO error occurs whilst loading a configuration file.
 	 */
 	public void load()  throws FileNotFoundException, IOException
 	{
-		String netFilename = null;
-		String filename = null;
 		FileInputStream fileInputStream = null;
 
 	// clear old properties
 		properties.clear();
 	// network properties load
-		netFilename = DEFAULT_NET_PROPERTY_FILE_NAME;
-		fileInputStream = new FileInputStream(netFilename);
+		fileInputStream = new FileInputStream(netPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// normal properties load
-		filename = DEFAULT_PROPERTY_FILE_NAME;
-		fileInputStream = new FileInputStream(filename);
+		fileInputStream = new FileInputStream(lociPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// fits properties load
-		filename = DEFAULT_FITS_PROPERTY_FILE_NAME;
-		fileInputStream = new FileInputStream(filename);
+		fileInputStream = new FileInputStream(fitsPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// current filter properties laod
-		filename = DEFAULT_CURRENT_FILTER_PROPERTY_FILE_NAME;
-		fileInputStream = new FileInputStream(filename);
+		fileInputStream = new FileInputStream(currentFilterPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// filter properties laod
-		filename = DEFAULT_FILTER_PROPERTY_FILE_NAME;
-		fileInputStream = new FileInputStream(filename);
+		fileInputStream = new FileInputStream(filterPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// initialise configId
@@ -157,38 +248,32 @@ public class LociStatus
 	 * The configId unique persistent integer is then initialised, using a filename stored in the properties.
 	 * @see #properties
 	 * @see #initialiseConfigId
-	 * @see #DEFAULT_NET_PROPERTY_FILE_NAME
-	 * @see #DEFAULT_PROPERTY_FILE_NAME
-	 * @see #DEFAULT_FITS_PROPERTY_FILE_NAME
-	 * @see #DEFAULT_CURRENT_FILTER_PROPERTY_FILE_NAME
-	 * @see #DEFAULT_FILTER_PROPERTY_FILE_NAME
+	 * @see #lociPropertyFilename
+	 * @see #fitsPropertyFilename
+	 * @see #currentFilterPropertyFilename
+	 * @see #filterPropertyFilename
 	 * @exception FileNotFoundException Thrown if a configuration file is not found.
 	 * @exception IOException Thrown if an IO error occurs whilst loading a configuration file.
 	 */
 	public void reload() throws FileNotFoundException,IOException
 	{
-		String filename = null;
 		FileInputStream fileInputStream = null;
 
 	// don't clear old properties, the network properties are not re-loaded
 	// normal properties load
-		filename = DEFAULT_PROPERTY_FILE_NAME;
-		fileInputStream = new FileInputStream(filename);
+		fileInputStream = new FileInputStream(lociPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// fits properties load
-		filename = DEFAULT_FITS_PROPERTY_FILE_NAME;
-		fileInputStream = new FileInputStream(filename);
+		fileInputStream = new FileInputStream(fitsPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// current filter properties laod
-		filename = DEFAULT_CURRENT_FILTER_PROPERTY_FILE_NAME;
-		fileInputStream = new FileInputStream(filename);
+		fileInputStream = new FileInputStream(currentFilterPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// filter properties laod
-		filename = DEFAULT_FILTER_PROPERTY_FILE_NAME;
-		fileInputStream = new FileInputStream(filename);
+		fileInputStream = new FileInputStream(filterPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// initialise configId

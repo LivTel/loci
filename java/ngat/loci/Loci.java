@@ -89,11 +89,23 @@ public class Loci
 	 */
 	protected Logger errorLogger = null;
 
+
 	/**
-	 * Method to initialise Loci.
+	 * Create an instance of the LociStatus object.
+	 * @see #status
+	 * @see ngat.loci.LociStatus
+	 */
+	private void initStatus()
+	{
+		// create status object
+		status = new LociStatus();
+	}
+	
+	/**
+	 * Method to initialise Loci. Here we assume initStatus() has been called before this method,
+	 * to create the LociStatus object instance.
 	 * <ul>
-	 * <li>Create an instance of the status object.
-	 * <li>Load the Loci properties file into it.
+	 * <li>Load the Loci properties file into ithe previously created LociStatus instance..
 	 * <li>We initialise the loggers (initLoggers).
 	 * <li>We set the log level (setLogLevel).
 	 * <li>We initialise the list of commands and their implementation classes (initImplementationList)
@@ -124,8 +136,7 @@ public class Loci
 	{
 		int time;
 
-	// create status object and load loci properties into it
-		status = new LociStatus();
+		// load loci properties into  the status object instance
 		try
 		{
 			status.load();
@@ -974,19 +985,74 @@ public class Loci
 	{
 		System.out.println("Loci Help:");
 		System.out.println("Arguments are:");
-		System.out.println("\t-l[og] <log level> - log level.");
+		System.out.println("\t-l[og] <log level> - Set log level.");
+		System.out.println("\t-cfpf|-current_filter_property_filename - Set properties filename to load current filters from.");
+		System.out.println("\t-filterpf|-filter_property_filename - Set properties filename to load filter database from.");
+		
+		System.out.println("\t-fitspf|-fits_property_filename - Set properties filename to load FITS properties from.");
+
+		System.out.println("\t-lpf|-loci_property_filename - Set properties filename to load the main Loci instrument properties from.");
+		System.out.println("\t-npf|-net_property_filename - Set properties filename to load the network properties from.");
 	}
 
 	/**
-	 * Parse the arguments.
+	 * Parse the arguments. We assume the status object instance (LociStatus) has previously been
+	 * constructed (by calling initStatus()) before this method is invoked, so we can update the property
+	 * filenames used by status.load() to load the instrument configurations.
 	 * @param args The string list of arguments.
 	 * @see #logLevel
+	 * @see #status
+	 * @see ngat.loci.LociStatus#setPropertyFilename
+	 * @see ngat.loci.LociStatus#setNetworkPropertyFilename
+	 * @see ngat.loci.LociStatus#setFitsPropertyFilename
+	 * @see ngat.loci.LociStatus#setCurrentFilterPropertyFilename
+	 * @see ngat.loci.LociStatus#setFilterPropertyFilename
 	 */
 	private void parseArguments(String args[])
 	{
 		for(int i = 0; i < args.length;i++)
 		{
-			if(args[i].equals("-l")||args[i].equals("-log"))
+			if(args[i].equals("-cfpf")||args[i].equals("-current_filter_property_filename"))
+			{
+				if((i+1)< args.length)
+				{
+					status.setCurrentFilterPropertyFilename(args[i+1]);
+					i++;
+				}
+				else
+					System.err.println("-current_filter_property_filename requires a properties filename.");
+			}
+			else if(args[i].equals("-filterpf")||args[i].equals("-filter_property_filename"))
+			{
+				if((i+1)< args.length)
+				{
+					status.setFilterPropertyFilename(args[i+1]);
+					i++;
+				}
+				else
+					System.err.println("-filter_property_filename requires a properties filename.");
+			}
+			else if(args[i].equals("-fitspf")||args[i].equals("-fits_property_filename"))
+			{
+				if((i+1)< args.length)
+				{
+					status.setFitsPropertyFilename(args[i+1]);
+					i++;
+				}
+				else
+					System.err.println("-fits_property_filename requires a properties filename.");
+			}
+			else if(args[i].equals("-lpf")||args[i].equals("-loci_property_filename"))
+			{
+				if((i+1)< args.length)
+				{
+					status.setPropertyFilename(args[i+1]);
+					i++;
+				}
+				else
+					System.err.println("-loci_property_filename requires a properties filename.");
+			}
+			else if(args[i].equals("-l")||args[i].equals("-log"))
 			{
 				if((i+1)< args.length)
 				{
@@ -995,6 +1061,16 @@ public class Loci
 				}
 				else
 					System.err.println("-log requires a log level");
+			}
+			else if(args[i].equals("-npf")||args[i].equals("-net_property_filename"))
+			{
+				if((i+1)< args.length)
+				{
+					status.setNetworkPropertyFilename(args[i+1]);
+					i++;
+				}
+				else
+					System.err.println("-net_property_filename requires a properties filename.");
 			}
 			else if(args[i].equals("-h")||args[i].equals("-help"))
 			{
@@ -1010,9 +1086,11 @@ public class Loci
 	 * The main routine, called when Loci is executed. This creates a new instance of the Loci class.
 	 * It calls the following methods:
 	 * <ul>
-	 * <li>Calls parseArguments.
-	 * <li>init.
-	 * <li>run.
+	 * <li>Calls the initStatus() method. This initialises the status (LociStatus) instance, so parseArguments
+	 *     can modify the default proprty filenames before the properties are loaded in the init() method.
+	 * <li>Calls the parseArguments().
+	 * <li>Calls the init() method.
+	 * <li>Calls the run() method.
 	 * </ul>
 	 * @param args The command line arguments.
 	 * @see #init
@@ -1025,7 +1103,12 @@ public class Loci
 
 		try
 		{
+			// create status object
+			loci.initStatus();
+			// parse arguments, update filenames to be used for config files in Loci's status object
 			loci.parseArguments(args);
+			// initialise (load) Loci config files, and then initialise other things based on the
+			// loaded configuration
 			loci.init();
 		}
 		catch(Exception e)
