@@ -136,9 +136,11 @@ public class Loci
 	{
 		int time;
 
+		System.out.println(this.getClass().getName()+":init:Started.");
 		// load loci properties into  the status object instance
 		try
 		{
+			System.out.println(this.getClass().getName()+":init:Loading status properties.");
 			status.load();
 		}
 		catch(FileNotFoundException e)
@@ -152,6 +154,7 @@ public class Loci
 			throw e;
 		}
 	// Logging
+		System.out.println(this.getClass().getName()+":init:Initialising loggers.");
 		initLoggers();
 	// initialise sub-system loggers, after creating status, hardware control objects
 		setLogLevel(logLevel);
@@ -703,9 +706,12 @@ public class Loci
 	{
 		Date nowDate = null;
 
+		log(Logging.VERBOSITY_VERY_TERSE,this.getClass().getName()+":run:started.");
+		log(Logging.VERBOSITY_VERY_TERSE,this.getClass().getName()+":run:creating server on port:"+lociPortNumber);
 		server = new LociTCPServer("Loci",lociPortNumber);
 		server.setLoci(this);
 		server.setPriority(status.getThreadPriorityServer());
+		log(Logging.VERBOSITY_VERY_TERSE,this.getClass().getName()+":run:creating Tit server on port:"+titPortNumber);
 		titServer = new TitServer("TitServer on port "+titPortNumber,titPortNumber);
 		titServer.setPriority(status.getThreadPriorityTIT());
 		nowDate = new Date();
@@ -1104,11 +1110,14 @@ public class Loci
 		try
 		{
 			// create status object
+			System.out.println(loci.getClass().getName()+":main:initStatus.");
 			loci.initStatus();
 			// parse arguments, update filenames to be used for config files in Loci's status object
+			System.out.println(loci.getClass().getName()+":main:parseArguments.");
 			loci.parseArguments(args);
 			// initialise (load) Loci config files, and then initialise other things based on the
 			// loaded configuration
+			System.out.println(loci.getClass().getName()+":main:init.");
 			loci.init();
 		}
 		catch(Exception e)

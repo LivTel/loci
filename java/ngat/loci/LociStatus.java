@@ -213,29 +213,42 @@ public class LociStatus
 	{
 		FileInputStream fileInputStream = null;
 
+		System.out.println(this.getClass().getName()+":load:Started.");
 	// clear old properties
+		System.out.println(this.getClass().getName()+":load:Clearing properties.");
 		properties.clear();
 	// network properties load
+		System.out.println(this.getClass().getName()+":load:Loading network properties from:"+
+				   netPropertyFilename);
 		fileInputStream = new FileInputStream(netPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// normal properties load
+		System.out.println(this.getClass().getName()+":load:Loading Loci properties from:"+
+				   lociPropertyFilename);
 		fileInputStream = new FileInputStream(lociPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// fits properties load
+		System.out.println(this.getClass().getName()+":load:Loading FITS properties from:"+
+				   fitsPropertyFilename);
 		fileInputStream = new FileInputStream(fitsPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// current filter properties laod
+		System.out.println(this.getClass().getName()+":load:Loading current filter properties from:"+
+				   currentFilterPropertyFilename);
 		fileInputStream = new FileInputStream(currentFilterPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// filter properties laod
+		System.out.println(this.getClass().getName()+":load:Loading filter properties from:"+
+				   filterPropertyFilename);
 		fileInputStream = new FileInputStream(filterPropertyFilename);
 		properties.load(fileInputStream);
 		fileInputStream.close();
 	// initialise configId
+		System.out.println(this.getClass().getName()+":load:Initialising config id.");
 		initialiseConfigId();
 	}
 
