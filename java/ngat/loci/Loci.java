@@ -15,6 +15,8 @@ import ngat.util.logging.*;
 import ngat.message.ISS_INST.*;
 import ngat.message.INST_DP.*;
 
+import ngat.loci.ccd.*;
+
 /**
  * This class is the entry point for the Loci (Liverpool Optical Compact Imager) Control System.
  * @author Chris Mottram
@@ -137,7 +139,7 @@ public class Loci
 		int time;
 
 		System.out.println(this.getClass().getName()+":init:Started.");
-		// load loci properties into  the status object instance
+		// load loci properties into the status object instance
 		try
 		{
 			System.out.println(this.getClass().getName()+":init:Loading status properties.");
@@ -227,6 +229,8 @@ public class Loci
 	// library logging loggers
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.net.TitServer"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.flask.EndPoint"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.Command"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.SetTemperatureCommand"),null,Logging.ALL);
 	}
 	
 	/**
@@ -693,7 +697,44 @@ public class Loci
 		    index+".");
 	}
 
-
+	/**
+	 * Method to initialise the CCD Flask API. This allows us to set the CCD temperature, and turn the 
+	 * cooling on and off.
+	 * @exception Exception Thrown if the ccd flask API configuration properties cannot be retrieved.
+	 * @see LociStatus#getProperty
+	 * @see LociStatus#getPropertyInteger
+	 */
+	public void initCCDController() throws Exception
+	{
+		SetTemperatureCommand setTemperatureCommand = null;
+		String ccdFlaskHostname = null;
+		int ccdFlaskPortNumber;
+		int targetTemperature;
+		boolean enableCooling;
+		
+		log(Logging.VERBOSITY_TERSE,this.getClass().getName()+":initCCDController:Started.");
+		// get CCD Flask API connection data
+		ccdFlaskHostname = status.getProperty("loci.flask.ccd.hostname");
+		ccdFlaskPortNumber = status.getPropertyInteger("loci.flask.ccd.port_number");
+		// get Loci CCD Flask End-point configuration data
+		targetTemperature = status.getPropertyInteger("loci.flask.ccd.temperature.target");
+		enableCooling = status.getPropertyBoolean("loci.flask.ccd.cooling.enable");
+		// set CCD temperature
+		setTemperatureCommand = new SetTemperatureCommand();
+		setTemperatureCommand.setAddress(ccdFlaskHostname);
+		setTemperatureCommand.setPortNumber(ccdFlaskPortNumber);
+		setTemperatureCommand.setTemperature(targetTemperature);
+		setTemperatureCommand.run();
+		if(setTemperatureCommand.getRunException() != null)
+		{
+			throw new Exception(this.getClass().getName()+":initCCDController:Set Temperature failed:",
+					    setTemperatureCommand.getRunException());
+		}
+		// set whether to turn the cooler on
+		
+		log(Logging.VERBOSITY_TERSE,this.getClass().getName()+":initCCDController:Finished.");
+	}
+	
 	/**
 	 * This is the run routine. It starts a new server to handle incoming requests, and waits for the
 	 * server to terminate.
@@ -1123,6 +1164,16 @@ public class Loci
 		catch(Exception e)
 		{
  			loci.error("main:init failed:",e);
+			System.exit(1);
+		}
+		// initialise the CCD Flask API (set temperature / cooler status)
+		try
+		{
+			loci.initCCDController();
+		}
+		catch(Exception e)
+		{
+ 			loci.error("main:initCCDController failed:",e);
 			System.exit(1);
 		}
 		loci.run();
