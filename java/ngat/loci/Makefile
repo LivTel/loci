@@ -14,7 +14,7 @@ MAIN_SRCS 	= LociConstants.java \
 		LociTCPServerConnectionThread.java LociTCPServer.java LociREBOOTQuitThread.java
 IMPL_SRCS = $(BASE_IMPL_SRCS) $(CALIBRATE_IMPL_SRCS) $(EXPOSE_IMPL_SRCS) $(INTERRUPT_IMPL_SRCS) $(SETUP_IMPL_SRCS)
 BASE_IMPL_SRCS		= CommandImplementation.java JMSCommandImplementation.java UnknownCommandImplementation.java \
-			#HardwareImplementation.java
+			  HardwareImplementation.java
 CALIBRATE_IMPL_SRCS 	= #CALIBRATEImplementation.java BIASImplementation.java DARKImplementation.java \
 			  MULTBIASImplementation.java MULTDARKImplementation.java
 EXPOSE_IMPL_SRCS	= #MULTRUNImplementation.java 
