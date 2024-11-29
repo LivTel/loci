@@ -52,6 +52,8 @@ public class SetTemperatureCommand extends Command implements Runnable
 	 */
 	public void setTemperature(int targetTemperature)
 	{
+		logger.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+
+			   ":setTemperature:Set target temperature to:"+targetTemperature);
 		endPoint.addParameter("temperature",targetTemperature);
 	}
 	
