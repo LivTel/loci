@@ -241,7 +241,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 
 	/**
 	 * Get the CCD Flask API hostname and port number from the properties into some internal variables. 
-	 * @exception Exception Thrown if the relevant property can be received.
+	 * @exception Exception Thrown if the relevant property cannot be retrieved.
 	 * @see #status
 	 * @see #ccdFlaskHostname
 	 * @see #ccdFlaskPortNumber
