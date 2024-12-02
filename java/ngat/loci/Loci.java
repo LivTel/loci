@@ -740,6 +740,16 @@ public class Loci
 			throw new Exception(this.getClass().getName()+":initCCDController:Set Temperature failed:",
 					    setTemperatureCommand.getRunException());
 		}
+		log(Logging.VERBOSITY_VERBOSE,"initCCDController:Set Temperature Command Finished with status: "+
+			 setTemperatureCommand.getReturnStatus()+
+			 " and message:"+setTemperatureCommand.getMessage()+".");
+		if(setTemperatureCommand.isReturnStatusSuccess() == false)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":initCCDController:Set Temperature Command failed with status: "+
+					    setTemperatureCommand.getReturnStatus()+
+					    " and message:"+setTemperatureCommand.getMessage()+".");
+		}
 		// set whether to turn the cooler on
 		setCoolingCommand = new SetCoolingCommand();
 		setCoolingCommand.setAddress(ccdFlaskHostname);
@@ -750,6 +760,16 @@ public class Loci
 		{
 			throw new Exception(this.getClass().getName()+":initCCDController:Set Cooling failed:",
 					    setCoolingCommand.getRunException());
+		}
+		log(Logging.VERBOSITY_VERBOSE,"initCCDController:Set Cooling Command Finished with status: "+
+			 setCoolingCommand.getReturnStatus()+
+			 " and message:"+setCoolingCommand.getMessage()+".");
+		if(setCoolingCommand.isReturnStatusSuccess() == false)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":initCCDController:Set Cooling Command failed with status: "+
+					    setCoolingCommand.getReturnStatus()+
+					    " and message:"+setCoolingCommand.getMessage()+".");
 		}
 		log(Logging.VERBOSITY_TERSE,this.getClass().getName()+":initCCDController:Finished.");
 	}
