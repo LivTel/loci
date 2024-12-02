@@ -65,7 +65,7 @@ public class Command implements Runnable
 
 	/**
 	 * Constructor. Construct the logger. Construct the Flask end-point.
-	 * @param address A string representing the address of the end-point, i.e. "liric",
+	 * @param address A string representing the address of the end-point, i.e. "loci1",
 	 *     "localhost".
 	 * @param portNumber An integer representing the port number the end-point is listening on.
 	 * @see #logger
