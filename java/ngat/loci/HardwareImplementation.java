@@ -23,6 +23,14 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	 * Revision Control System id string, showing the version of the Class.
 	 */
 	public final static String RCSID = new String("$Id$");
+	/**
+	 * The host the loci-ctrl CCD Flask end-point is located on.
+	 */
+	protected String ccdFlaskHostname = null;
+	/**
+	 * The port number the loci-ctrl CCD Flask end-point is located on.
+	 */
+	protected int ccdFlaskPortNumber;
 
 	/**
 	 * This method calls the super-classes method.
@@ -54,7 +62,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	{
 		return super.processCommand(command);
 	}
-
+	
 	/**
 	 * This routine tries to move the mirror fold to a certain location, by issuing a MOVE_FOLD command
 	 * to the ISS. The position to move the fold to is specified by the loci property file.
@@ -423,6 +431,22 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 		//}
 	}
 
+	/**
+	 * Retrieve the loci-ctrl CCD Flask end-point conenction data.
+	 * <ul>
+	 * <li>Retrieve the loci-ctrl CCD Flask end-point hostname from the property 'loci.flask.ccd.hostname.
+	 * <li>Retrieve the loci-ctrl CCD Flask end-point port number from the property 'loci.flask.ccd.port_number'.
+	 * </ul>
+	 * @see #status
+	 * @see #ccdFlaskHostname
+	 * @see #ccdFlaskPortNumber
+	 */
+	protected void getCCDFlaskConnectionData()
+	{
+		ccdFlaskHostname = status.getProperty("loci.flask.ccd.hostname");
+		ccdFlaskPortNumber = status.getPropertyInteger("loci.flask.ccd.port_number");		
+	}
+	
 	/**
 	 * This routine takes a Date, and formats a string to the correct FITS format for that date and returns it.
 	 * The format should be 'CCYY-MM-DDThh:mm:ss[.sss...]'.
