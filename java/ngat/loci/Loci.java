@@ -230,7 +230,14 @@ public class Loci
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.net.TitServer"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.flask.EndPoint"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.Command"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.AbortExposureCommand"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.GetCameraStatusCommand"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.GetTemperatureCommand"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.SetCoolingCommand"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.SetTemperatureCommand"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.TakeBiasFrameCommand"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.TakeDarkFrameCommand"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.TakeExposureCommand"),null,Logging.ALL);
 	}
 	
 	/**
@@ -703,10 +710,13 @@ public class Loci
 	 * @exception Exception Thrown if the ccd flask API configuration properties cannot be retrieved.
 	 * @see LociStatus#getProperty
 	 * @see LociStatus#getPropertyInteger
+	 * @see ngat.loci.ccd.SetTemperatureCommand
+	 * @see ngat.loci.ccd.SetCoolingCommand
 	 */
 	public void initCCDController() throws Exception
 	{
 		SetTemperatureCommand setTemperatureCommand = null;
+		SetCoolingCommand setCoolingCommand = null;
 		String ccdFlaskHostname = null;
 		int ccdFlaskPortNumber;
 		int targetTemperature;
@@ -731,7 +741,16 @@ public class Loci
 					    setTemperatureCommand.getRunException());
 		}
 		// set whether to turn the cooler on
-		
+		setCoolingCommand = new SetCoolingCommand();
+		setCoolingCommand.setAddress(ccdFlaskHostname);
+		setCoolingCommand.setPortNumber(ccdFlaskPortNumber);
+		setCoolingCommand.setCooling(enableCooling);
+		setCoolingCommand.run();
+		if(setCoolingCommand.getRunException() != null)
+		{
+			throw new Exception(this.getClass().getName()+":initCCDController:Set Cooling failed:",
+					    setCoolingCommand.getRunException());
+		}
 		log(Logging.VERBOSITY_TERSE,this.getClass().getName()+":initCCDController:Finished.");
 	}
 	
