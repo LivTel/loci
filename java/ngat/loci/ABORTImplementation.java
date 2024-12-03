@@ -112,7 +112,7 @@ public class ABORTImplementation extends CommandImplementation implements JMSCom
 	 * Send an "abortExposure" command to the loci-ctrl CCD Flask API.
 	 * @exception Exception Thrown if an error occurs.
 	 * @see #status
-	 * @see ngat.loci.ccd.AbortCommand
+	 * @see ngat.loci.ccd.AbortExposureCommand
 	 */
 	protected void sendAbortExposureCommand() throws Exception
 	{
