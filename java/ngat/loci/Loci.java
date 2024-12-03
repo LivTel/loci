@@ -9,6 +9,7 @@ import java.net.*;
 import java.text.*;
 import java.util.*;
 
+import ngat.fits.*;
 import ngat.net.*;
 import ngat.util.*;
 import ngat.util.logging.*;
@@ -56,6 +57,10 @@ public class Loci
 	 * Status object.
 	 */
 	private LociStatus status = null;
+	/**
+	 * Loci FITS Filename object to generate unique fits filenames according to ISS rules.
+	 */
+	private FitsFilename fitsFilename = null;
 	/**
 	 * This hashtable holds the map between COMMAND sub-class names and their implementations, which
 	 * are stored as the Hashtable data values as class objects of sub-classes of CommandImplementation.
@@ -107,9 +112,10 @@ public class Loci
 	 * Method to initialise Loci. Here we assume initStatus() has been called before this method,
 	 * to create the LociStatus object instance.
 	 * <ul>
-	 * <li>Load the Loci properties file into ithe previously created LociStatus instance..
+	 * <li>Load the Loci properties file into ithe previously created LociStatus instance.
 	 * <li>We initialise the loggers (initLoggers).
 	 * <li>We set the log level (setLogLevel).
+	 * <li>We initialise the FITS filename library.
 	 * <li>We initialise the list of commands and their implementation classes (initImplementationList)
 	 * <li>We initialise various port numbers from the properties file.
 	 * <li>We initialise the IP address of the ISS (Instrument Support Service) from the properties file.
@@ -121,6 +127,7 @@ public class Loci
 	 * @see #setLogLevel
 	 * @see #initImplementationList
 	 * @see #status
+	 * @see #fitsFilename
 	 * @see #lociPortNumber
 	 * @see #issPortNumber
 	 * @see #titPortNumber
@@ -160,6 +167,11 @@ public class Loci
 		initLoggers();
 	// initialise sub-system loggers, after creating status, hardware control objects
 		setLogLevel(logLevel);
+	// create the fits filename object
+		fitsFilename = new FitsFilename();
+		fitsFilename.setInstrumentCode(status.getProperty("loci.file.fits.instrument_code"));
+		fitsFilename.setDirectory(status.getProperty("loci.file.fits.path"));
+		fitsFilename.initialise();
 	// Create and initialise the implementationList
 		initImplementationList();
 	// initialise port numbers from properties file/ command line arguments
@@ -560,6 +572,7 @@ public class Loci
 	 * @see #status
 	 * @see #init
 	 * @see #setLogLevel
+	 * @see #fitsFilename
 	 */
 	public void reInit() throws FileNotFoundException,IOException,NumberFormatException,Exception
 	{
@@ -584,6 +597,10 @@ public class Loci
 	// don't change logLogger to files defined in loaded properties
 	// initialise sub-system loggers
 		setLogLevel(logLevel);
+	// create the fits filename object
+		fitsFilename.setInstrumentCode(status.getProperty("loci.file.fits.instrument_code"));
+		fitsFilename.setDirectory(status.getProperty("loci.file.fits.path"));
+		fitsFilename.initialise();
 	// initialise default connection response times from properties file
 		try
 		{
@@ -841,6 +858,16 @@ public class Loci
 	public LociTCPServer getServer()
 	{
 		return server;
+	}
+
+	/**
+	 * Get Fits filename generation object instance.
+	 * @return The Loci FitsFilename fitsFilename instance.
+	 * @see #fitsFilename
+	 */
+	public FitsFilename getFitsFilename()
+	{
+		return fitsFilename;
 	}
 
 	/**
