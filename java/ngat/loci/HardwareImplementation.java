@@ -31,14 +31,25 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	 * The port number the loci-ctrl CCD Flask end-point is located on.
 	 */
 	protected int ccdFlaskPortNumber;
+	/**
+	 * A reference to the FitsFilename class instance used to generate unique FITS filenames.
+	 */
+	protected FitsFilename lociFitsFilename = null;
 
 	/**
-	 * This method calls the super-classes method.
+	 * This method calls the super-classes method. It tries to initialise the fitsFilename reference
+	 * by retrieving the instacne constructed in the main Loci object instance.
 	 * @param command The command to be implemented.
+	 * @see #lociFitsFilename
+	 * @see ngat.loci.Loci#getFitsFilename
 	 */
 	public void init(COMMAND command)
 	{
 		super.init(command);
+		if (loci != null)
+		{
+			lociFitsFilename = loci.getFitsFilename();
+		}
 	}
 	
 	/**
