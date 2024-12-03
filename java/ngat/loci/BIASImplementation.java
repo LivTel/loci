@@ -46,11 +46,12 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 	}
 
 	/**
-	 * This method returns the BIAS command's acknowledge time. We allow
-	 * 1 second for the bias and add the default acknowledge time (getDefaultAcknowledgeTime).
+	 * This method returns the BIAS command's acknowledge time. We get the max readout time 
+	 * and add the default acknowledge time (getDefaultAcknowledgeTime).
 	 * @param command The command instance we are implementing.
 	 * @return An instance of ACK with the timeToComplete set.
 	 * @see ngat.message.base.ACK#setTimeToComplete
+	 * @see LociStatus#getMaxReadoutTime
 	 * @see LociTCPServerConnectionThread#getDefaultAcknowledgeTime
 	 * @see CALIBRATEImplementation#MILLISECONDS_PER_SECOND
 	 * @see #status
@@ -61,7 +62,7 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 		ACK acknowledge = null;
 		int ackTime=0;
 
-		ackTime = MILLISECONDS_PER_SECOND;
+		ackTime = status.getMaxReadoutTime();
 		loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+
 			 ":calculateAcknowledgeTime:ackTime = "+ackTime);
 		acknowledge = new ACK(command.getId());
@@ -77,10 +78,13 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 	 *     CCD Flask layer.
 	 * <li>getFitsHeadersFromISS is called to gets some FITS headers from the ISS (RCS). 
 	 *     These are sent on to the loci-crtl CCD Flask layer.
-	 * <li>We send a takeBiasFrame command to the loci-crtl CCD Flask layer, with exposure count 1.
-	 * <li>The done object is setup. 
+	 * <li>We increment the lociFitsFilename Multrun number.
+	 * <li>We send a takeBiasFrame command to the loci-crtl CCD Flask layer, which returns the generated
+	 *     Bias image filename.
+	 * <li>The done object is setup, and the generated filename returned. 
 	 * </ul>
 	 * @see #testAbort
+	 * @see #lociFitsFilename
 	 * @see ngat.loci.CALIBRATEImplementation#sendTakeBiasFrameCommand
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
@@ -109,22 +113,8 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 			return biasDone;
 		// setup bias multrun
 		loci.log(Logging.VERBOSITY_VERY_VERBOSE,this.getClass().getName()+
-			 ":processCommand:Setting up FITS filename multrun/exposure code.");
+			 ":processCommand:Setting up FITS filename multrun.");
 		lociFitsFilename.nextMultRunNumber();
-		try
-		{
-			lociFitsFilename.setExposureCode(FitsFilename.EXPOSURE_CODE_BIAS);
-		}
-		catch(Exception e)
-		{
-			loci.error(this.getClass().getName()+":processCommand:Setting Exposure Code failed:"+
-				   command+":"+e.toString());
-			biasDone.setFilename(filename);
-			biasDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+701);
-			biasDone.setErrorString(e.toString());
-			biasDone.setSuccessful(false);
-			return biasDone;
-		}
 		// call take bias frame command
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:Starting sendTakeBiasFrameCommand.");
