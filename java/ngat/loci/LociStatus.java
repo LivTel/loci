@@ -815,6 +815,29 @@ public class LociStatus
 	}
 
 	/**
+	 * Method to get the maximum length of time a readout takes, in millseconds.
+	 * The value is retrieved from the <b>loci.config.readout_time.max</b> property.
+	 * If this fails zero is returned.
+	 * The value is used when calculating ACK times.
+	 * @return The maximum length of time a readout takes, in millseconds.
+	 * @see #getPropertyInteger
+	 */
+	public int getMaxReadoutTime()
+	{
+		int retval;
+
+		try
+		{
+			retval = getPropertyInteger("loci.config.readout_time.max");
+		}
+		catch(NumberFormatException e)
+		{
+			retval = 0;
+		}
+		return retval;
+	}
+
+	/**
 	 * Internal method to initialise the configId field. This is not done during construction
 	 * as the property files need to be loaded to determine the filename to use.
 	 * This is got from the <i>loci.config.unique_id_filename</i> property.
