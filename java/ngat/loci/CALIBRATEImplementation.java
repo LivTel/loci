@@ -65,7 +65,8 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * Send a 'takeBiasFrame' command to the loci-ctrl CCD Flask API.
 	 * <ul>
 	 * <li>We call getCCDFlaskConnectionData to setup ccdFlaskHostname and ccdFlaskPortNumber.
-	 * <li>We generate a new FITS filename to store the Bias data into.
+	 * <li>We generate a new BIAS FITS filename to store the Bias data into. We assume the multrun number has
+	 *     already been incremented elsewhere.
 	 * <li>We setup and configure an instance of TakeBiasFrameCommand, 
 	 *     with connection details and the generated filename.
 	 * <li>We run the instance of TakeBiasFrameCommand.
@@ -76,6 +77,7 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * <li>We return the generated bias filename.
 	 * </ul>
 	 * @return The generated BIAS FITS filename is returned as a String.
+	 * @see #lociFitsFilename
 	 * @see #getCCDFlaskConnectionData
 	 * @see #ccdFlaskHostname
 	 * @see #ccdFlaskPortNumber
@@ -94,6 +96,7 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		// get CCD Flask API connection data
 		getCCDFlaskConnectionData();
 		// setup filename to save bias frame into
+		lociFitsFilename.setExposureCode(FitsFilename.EXPOSURE_CODE_BIAS);
 		lociFitsFilename.nextRunNumber();
 		filename = lociFitsFilename.getFilename();
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,
@@ -126,5 +129,81 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeBiasFrameCommand:finished with filename:"+filename);
 		return filename;
 	}
-}
 
+	/**
+	 * Send a 'takeDarkFrame' command to the loci-ctrl CCD Flask API.
+	 * <ul>
+	 * <li>We call getCCDFlaskConnectionData to setup ccdFlaskHostname and ccdFlaskPortNumber.
+	 * <li>We generate a new DARK FITS filename to store the Bias data into. We assume the multrun number has
+	 *     already been incremented elsewhere.
+	 * <li>We setup and configure an instance of TakeDarkFrameCommand, 
+	 *     with connection details, exposure length and the generated filename.
+	 * <li>We run the instance of TakeDarkFrameCommand.
+	 * <li>We check whether a run exception occured, and throw it as an exception if so.
+	 * <li>We log the return status and message.
+	 * <li>We check whether the TakeDarkFrameCommand return status was Success, and throw an exception if it
+	 *     returned a failure.
+	 * <li>We return the generated dark filename.
+	 * </ul>
+	 * @param exposureLength The dark exposure length in milliseconds.
+	 * @return The generated DARK FITS filename is returned as a String.
+	 * @see #lociFitsFilename
+	 * @see #getCCDFlaskConnectionData
+	 * @see #ccdFlaskHostname
+	 * @see #ccdFlaskPortNumber
+	 * @see ngat.loci.ccd.TakeDarkFrameCommand
+	 * @exception UnknownHostException Thrown if the address passed to TakeDarkFrameCommand.setAddress is not a 
+	 *            valid host.
+	 * @exception Exception Thrown if the TakeDarkFrameCommand generates a run exception, or the return
+	 *            status is not success.
+	 */
+	protected String sendTakeDarkFrameCommand(int exposureLength) throws UnknownHostException, Exception
+	{
+		TakeDarkFrameCommand takeDarkFrameCommand = null;
+		String filename = null;
+		double exposureLengthS;
+		
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeDarkFrameCommand:started with exposure length "+
+			 exposureLength+" ms.");
+		// get CCD Flask API connection data
+		getCCDFlaskConnectionData();
+		// setup filename to save bias frame into
+		lociFitsFilename.setExposureCode(FitsFilename.EXPOSURE_CODE_DARK);
+		lociFitsFilename.nextRunNumber();
+		filename = lociFitsFilename.getFilename();
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,
+			 "sendTakeDarkFrameCommand:Saving Dark frame to filename:"+filename);
+		// convert exposure length from milliseconds to decimal seconds
+		exposureLengthS = ((double)exposureLength)/((double)MILLISECONDS_PER_SECOND);
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeDarkFrameCommand:Exposure length "+
+			 exposureLengthS+" seconds.");
+		// setup TakeDarkFrameCommand
+		takeDarkFrameCommand = new TakeDarkFrameCommand();
+		takeDarkFrameCommand.setAddress(ccdFlaskHostname);
+		takeDarkFrameCommand.setPortNumber(ccdFlaskPortNumber);
+		takeDarkFrameCommand.setExposureLength(exposureLengthS);
+		takeDarkFrameCommand.setFilename(filename);
+		// run command
+		takeDarkFrameCommand.run();
+		// check reply
+		if(takeDarkFrameCommand.getRunException() != null)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":sendTakeDarkFrameCommand:Failed to take dark frame:",
+					    takeDarkFrameCommand.getRunException());
+		}
+		loci.log(Logging.VERBOSITY_VERBOSE,
+			 "sendTakeDarkFrameCommand:Take Dark Frame Command Finished with status: "+
+			 takeDarkFrameCommand.getReturnStatus()+
+			 " and message:"+takeDarkFrameCommand.getMessage()+".");
+		if(takeDarkFrameCommand.isReturnStatusSuccess() == false)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":sendTakeDarkFrameCommand:Take Dark Frame Command failed with status: "+
+					    takeDarkFrameCommand.getReturnStatus()+
+					    " and message:"+takeDarkFrameCommand.getMessage()+".");
+		}
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeDarkFrameCommand:finished with filename:"+filename);
+		return filename;
+	}
+}
