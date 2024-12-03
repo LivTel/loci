@@ -90,7 +90,8 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 	{
 		BIAS biasCommand = (BIAS)command;
 		BIAS_DONE biasDone = new BIAS_DONE(command.getId());
-	
+		String filename = null;
+		
 		loci.log(Logging.VERBOSITY_TERSE,this.getClass().getName()+":processCommand:Started.");
 		if(testAbort(biasCommand,biasDone) == true)
 			return biasDone;
@@ -106,12 +107,30 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 			return biasDone;
 		if(testAbort(biasCommand,biasDone) == true)
 			return biasDone;
+		// setup bias multrun
+		loci.log(Logging.VERBOSITY_VERY_VERBOSE,this.getClass().getName()+
+			 ":processCommand:Setting up FITS filename multrun/exposure code.");
+		lociFitsFilename.nextMultRunNumber();
+		try
+		{
+			lociFitsFilename.setExposureCode(FitsFilename.EXPOSURE_CODE_BIAS);
+		}
+		catch(Exception e)
+		{
+			loci.error(this.getClass().getName()+":processCommand:Setting Exposure Code failed:"+
+				   command+":"+e.toString());
+			biasDone.setFilename(filename);
+			biasDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+701);
+			biasDone.setErrorString(e.toString());
+			biasDone.setSuccessful(false);
+			return biasDone;
+		}
 		// call take bias frame command
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:Starting sendTakeBiasFrameCommand.");
 		try
 		{
-			sendTakeBiasFrameCommand();
+			filename = sendTakeBiasFrameCommand();
 		}
 		catch(Exception e )
 		{
@@ -123,8 +142,8 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 			return biasDone;
 		}
 		// setup return values.
-		// setup multbias done
-		biasDone.setFilename(lastFilename);
+		// setup bias done
+		biasDone.setFilename(filename);
 		// standard success values
 		biasDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_NO_ERROR);
 		biasDone.setErrorString("");
