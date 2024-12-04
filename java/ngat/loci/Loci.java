@@ -9,7 +9,7 @@ import java.net.*;
 import java.text.*;
 import java.util.*;
 
-import ngat.fits.*;
+//import ngat.fits.*;
 import ngat.net.*;
 import ngat.util.*;
 import ngat.util.logging.*;
@@ -60,7 +60,7 @@ public class Loci
 	/**
 	 * Loci FITS Filename object to generate unique fits filenames according to ISS rules.
 	 */
-	private FitsFilename fitsFilename = null;
+	//private FitsFilename fitsFilename = null;
 	/**
 	 * This hashtable holds the map between COMMAND sub-class names and their implementations, which
 	 * are stored as the Hashtable data values as class objects of sub-classes of CommandImplementation.
@@ -168,10 +168,10 @@ public class Loci
 	// initialise sub-system loggers, after creating status, hardware control objects
 		setLogLevel(logLevel);
 	// create the fits filename object
-		fitsFilename = new FitsFilename();
-		fitsFilename.setInstrumentCode(status.getProperty("loci.file.fits.instrument_code"));
-		fitsFilename.setDirectory(status.getProperty("loci.file.fits.path"));
-		fitsFilename.initialise();
+		//fitsFilename = new FitsFilename();
+		//fitsFilename.setInstrumentCode(status.getProperty("loci.file.fits.instrument_code"));
+		//fitsFilename.setDirectory(status.getProperty("loci.file.fits.path"));
+		//fitsFilename.initialise();
 	// Create and initialise the implementationList
 		initImplementationList();
 	// initialise port numbers from properties file/ command line arguments
@@ -598,9 +598,9 @@ public class Loci
 	// initialise sub-system loggers
 		setLogLevel(logLevel);
 	// create the fits filename object
-		fitsFilename.setInstrumentCode(status.getProperty("loci.file.fits.instrument_code"));
-		fitsFilename.setDirectory(status.getProperty("loci.file.fits.path"));
-		fitsFilename.initialise();
+		//fitsFilename.setInstrumentCode(status.getProperty("loci.file.fits.instrument_code"));
+		//fitsFilename.setDirectory(status.getProperty("loci.file.fits.path"));
+		//fitsFilename.initialise();
 	// initialise default connection response times from properties file
 		try
 		{
@@ -865,10 +865,10 @@ public class Loci
 	 * @return The Loci FitsFilename fitsFilename instance.
 	 * @see #fitsFilename
 	 */
-	public FitsFilename getFitsFilename()
-	{
-		return fitsFilename;
-	}
+	//public FitsFilename getFitsFilename()
+	//{
+	//	return fitsFilename;
+	//}
 
 	/**
 	 * Get status instance.

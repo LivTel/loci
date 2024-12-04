@@ -112,9 +112,9 @@ public class DARKImplementation extends CALIBRATEImplementation implements JMSCo
 		if(testAbort(darkCommand,darkDone) == true)
 			return darkDone;
 		// setup bias multrun
-		loci.log(Logging.VERBOSITY_VERY_VERBOSE,this.getClass().getName()+
-			 ":processCommand:Setting up FITS filename multrun.");
-		lociFitsFilename.nextMultRunNumber();
+		//loci.log(Logging.VERBOSITY_VERY_VERBOSE,this.getClass().getName()+
+		//	 ":processCommand:Setting up FITS filename multrun.");
+		//lociFitsFilename.nextMultRunNumber();
 		// call take dark frame command
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:Starting sendTakeDarkFrameCommand.");

@@ -96,16 +96,16 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		// get CCD Flask API connection data
 		getCCDFlaskConnectionData();
 		// setup filename to save bias frame into
-		lociFitsFilename.setExposureCode(FitsFilename.EXPOSURE_CODE_BIAS);
-		lociFitsFilename.nextRunNumber();
-		filename = lociFitsFilename.getFilename();
-		loci.log(Logging.VERBOSITY_INTERMEDIATE,
-			 "sendTakeBiasFrameCommand:Saving Bias frame to filename:"+filename);
+		//lociFitsFilename.setExposureCode(FitsFilename.EXPOSURE_CODE_BIAS);
+		//lociFitsFilename.nextRunNumber();
+		//filename = lociFitsFilename.getFilename();
+		//loci.log(Logging.VERBOSITY_INTERMEDIATE,
+		//	 "sendTakeBiasFrameCommand:Saving Bias frame to filename:"+filename);
 		// setup TakeBiasFrameCommand
 		takeBiasFrameCommand = new TakeBiasFrameCommand();
 		takeBiasFrameCommand.setAddress(ccdFlaskHostname);
 		takeBiasFrameCommand.setPortNumber(ccdFlaskPortNumber);
-		takeBiasFrameCommand.setFilename(filename);
+		//takeBiasFrameCommand.setFilename(filename);
 		// run command
 		takeBiasFrameCommand.run();
 		// check reply
@@ -118,14 +118,17 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		loci.log(Logging.VERBOSITY_VERBOSE,
 			 "sendTakeBiasFrameCommand:Take Bias Frame Command Finished with status: "+
 			 takeBiasFrameCommand.getReturnStatus()+
+			 " and filename:"+takeBiasFrameCommand.getFilename()+
 			 " and message:"+takeBiasFrameCommand.getMessage()+".");
 		if(takeBiasFrameCommand.isReturnStatusSuccess() == false)
 		{
 			throw new Exception(this.getClass().getName()+
 					    ":sendTakeBiasFrameCommand:Take Bias Frame Command failed with status: "+
 					    takeBiasFrameCommand.getReturnStatus()+
+					    " and filename:"+takeBiasFrameCommand.getFilename()+
 					    " and message:"+takeBiasFrameCommand.getMessage()+".");
 		}
+		filename = takeBiasFrameCommand.getFilename();
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeBiasFrameCommand:finished with filename:"+filename);
 		return filename;
 	}
@@ -168,11 +171,11 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		// get CCD Flask API connection data
 		getCCDFlaskConnectionData();
 		// setup filename to save bias frame into
-		lociFitsFilename.setExposureCode(FitsFilename.EXPOSURE_CODE_DARK);
-		lociFitsFilename.nextRunNumber();
-		filename = lociFitsFilename.getFilename();
-		loci.log(Logging.VERBOSITY_INTERMEDIATE,
-			 "sendTakeDarkFrameCommand:Saving Dark frame to filename:"+filename);
+		//lociFitsFilename.setExposureCode(FitsFilename.EXPOSURE_CODE_DARK);
+		//lociFitsFilename.nextRunNumber();
+		//filename = lociFitsFilename.getFilename();
+		//loci.log(Logging.VERBOSITY_INTERMEDIATE,
+		//	 "sendTakeDarkFrameCommand:Saving Dark frame to filename:"+filename);
 		// convert exposure length from milliseconds to decimal seconds
 		exposureLengthS = ((double)exposureLength)/((double)MILLISECONDS_PER_SECOND);
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeDarkFrameCommand:Exposure length "+
@@ -182,7 +185,7 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		takeDarkFrameCommand.setAddress(ccdFlaskHostname);
 		takeDarkFrameCommand.setPortNumber(ccdFlaskPortNumber);
 		takeDarkFrameCommand.setExposureLength(exposureLengthS);
-		takeDarkFrameCommand.setFilename(filename);
+		//takeDarkFrameCommand.setFilename(filename);
 		// run command
 		takeDarkFrameCommand.run();
 		// check reply
@@ -195,14 +198,17 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		loci.log(Logging.VERBOSITY_VERBOSE,
 			 "sendTakeDarkFrameCommand:Take Dark Frame Command Finished with status: "+
 			 takeDarkFrameCommand.getReturnStatus()+
+			 " and filename:"+takeDarkFrameCommand.getFilename()+
 			 " and message:"+takeDarkFrameCommand.getMessage()+".");
 		if(takeDarkFrameCommand.isReturnStatusSuccess() == false)
 		{
 			throw new Exception(this.getClass().getName()+
 					    ":sendTakeDarkFrameCommand:Take Dark Frame Command failed with status: "+
 					    takeDarkFrameCommand.getReturnStatus()+
+					    " and filename:"+takeDarkFrameCommand.getFilename()+
 					    " and message:"+takeDarkFrameCommand.getMessage()+".");
 		}
+		filename = takeDarkFrameCommand.getFilename();
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeDarkFrameCommand:finished with filename:"+filename);
 		return filename;
 	}

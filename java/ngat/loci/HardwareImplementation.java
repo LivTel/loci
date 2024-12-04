@@ -34,7 +34,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	/**
 	 * A reference to the FitsFilename class instance used to generate unique FITS filenames.
 	 */
-	protected FitsFilename lociFitsFilename = null;
+	//protected FitsFilename lociFitsFilename = null;
 
 	/**
 	 * This method calls the super-classes method. It tries to initialise the fitsFilename reference
@@ -46,10 +46,10 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	public void init(COMMAND command)
 	{
 		super.init(command);
-		if (loci != null)
-		{
-			lociFitsFilename = loci.getFitsFilename();
-		}
+		//if (loci != null)
+		//{
+		//	lociFitsFilename = loci.getFitsFilename();
+		//}
 	}
 	
 	/**
