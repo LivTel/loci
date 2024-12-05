@@ -78,13 +78,11 @@ public class DARKImplementation extends CALIBRATEImplementation implements JMSCo
 	 *     CCD Flask layer.
 	 * <li>getFitsHeadersFromISS is called to gets some FITS headers from the ISS (RCS). 
 	 *     These are sent on to the loci-crtl CCD Flask layer.
-	 * <li>We increment the lociFitsFilename Multrun number.
 	 * <li>We send a takeDarkFrame command to the loci-crtl CCD Flask layer, which returns the generated
 	 *     Dark image filename.
 	 * <li>The done object is setup, and the generated filename returned. 
 	 * </ul>
 	 * @see #testAbort
-	 * @see #lociFitsFilename
 	 * @see ngat.loci.CALIBRATEImplementation#sendTakeDarkFrameCommand
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
@@ -111,10 +109,6 @@ public class DARKImplementation extends CALIBRATEImplementation implements JMSCo
 			return darkDone;
 		if(testAbort(darkCommand,darkDone) == true)
 			return darkDone;
-		// setup bias multrun
-		//loci.log(Logging.VERBOSITY_VERY_VERBOSE,this.getClass().getName()+
-		//	 ":processCommand:Setting up FITS filename multrun.");
-		//lociFitsFilename.nextMultRunNumber();
 		// call take dark frame command
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:Starting sendTakeDarkFrameCommand.");

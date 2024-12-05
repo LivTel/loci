@@ -78,13 +78,11 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 	 *     CCD Flask layer.
 	 * <li>getFitsHeadersFromISS is called to gets some FITS headers from the ISS (RCS). 
 	 *     These are sent on to the loci-crtl CCD Flask layer.
-	 * <li>We increment the lociFitsFilename Multrun number.
 	 * <li>We send a takeBiasFrame command to the loci-crtl CCD Flask layer, which returns the generated
 	 *     Bias image filename.
 	 * <li>The done object is setup, and the generated filename returned. 
 	 * </ul>
 	 * @see #testAbort
-	 * @see #lociFitsFilename
 	 * @see ngat.loci.CALIBRATEImplementation#sendTakeBiasFrameCommand
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
@@ -114,7 +112,6 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 		// setup bias multrun
 		loci.log(Logging.VERBOSITY_VERY_VERBOSE,this.getClass().getName()+
 			 ":processCommand:Setting up FITS filename multrun.");
-		//lociFitsFilename.nextMultRunNumber();
 		// call take bias frame command
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:Starting sendTakeBiasFrameCommand.");

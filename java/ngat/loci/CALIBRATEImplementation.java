@@ -65,8 +65,6 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * Send a 'takeBiasFrame' command to the loci-ctrl CCD Flask API.
 	 * <ul>
 	 * <li>We call getCCDFlaskConnectionData to setup ccdFlaskHostname and ccdFlaskPortNumber.
-	 * <li>We generate a new BIAS FITS filename to store the Bias data into. We assume the multrun number has
-	 *     already been incremented elsewhere.
 	 * <li>We setup and configure an instance of TakeBiasFrameCommand, 
 	 *     with connection details and the generated filename.
 	 * <li>We run the instance of TakeBiasFrameCommand.
@@ -77,7 +75,6 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * <li>We return the generated bias filename.
 	 * </ul>
 	 * @return The generated BIAS FITS filename is returned as a String.
-	 * @see #lociFitsFilename
 	 * @see #getCCDFlaskConnectionData
 	 * @see #ccdFlaskHostname
 	 * @see #ccdFlaskPortNumber
@@ -95,12 +92,6 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeBiasFrameCommand:started.");
 		// get CCD Flask API connection data
 		getCCDFlaskConnectionData();
-		// setup filename to save bias frame into
-		//lociFitsFilename.setExposureCode(FitsFilename.EXPOSURE_CODE_BIAS);
-		//lociFitsFilename.nextRunNumber();
-		//filename = lociFitsFilename.getFilename();
-		//loci.log(Logging.VERBOSITY_INTERMEDIATE,
-		//	 "sendTakeBiasFrameCommand:Saving Bias frame to filename:"+filename);
 		// setup TakeBiasFrameCommand
 		takeBiasFrameCommand = new TakeBiasFrameCommand();
 		takeBiasFrameCommand.setAddress(ccdFlaskHostname);
@@ -137,8 +128,6 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * Send a 'takeDarkFrame' command to the loci-ctrl CCD Flask API.
 	 * <ul>
 	 * <li>We call getCCDFlaskConnectionData to setup ccdFlaskHostname and ccdFlaskPortNumber.
-	 * <li>We generate a new DARK FITS filename to store the Bias data into. We assume the multrun number has
-	 *     already been incremented elsewhere.
 	 * <li>We setup and configure an instance of TakeDarkFrameCommand, 
 	 *     with connection details, exposure length and the generated filename.
 	 * <li>We run the instance of TakeDarkFrameCommand.
@@ -150,7 +139,6 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * </ul>
 	 * @param exposureLength The dark exposure length in milliseconds.
 	 * @return The generated DARK FITS filename is returned as a String.
-	 * @see #lociFitsFilename
 	 * @see #getCCDFlaskConnectionData
 	 * @see #ccdFlaskHostname
 	 * @see #ccdFlaskPortNumber
@@ -170,12 +158,6 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 			 exposureLength+" ms.");
 		// get CCD Flask API connection data
 		getCCDFlaskConnectionData();
-		// setup filename to save bias frame into
-		//lociFitsFilename.setExposureCode(FitsFilename.EXPOSURE_CODE_DARK);
-		//lociFitsFilename.nextRunNumber();
-		//filename = lociFitsFilename.getFilename();
-		//loci.log(Logging.VERBOSITY_INTERMEDIATE,
-		//	 "sendTakeDarkFrameCommand:Saving Dark frame to filename:"+filename);
 		// convert exposure length from milliseconds to decimal seconds
 		exposureLengthS = ((double)exposureLength)/((double)MILLISECONDS_PER_SECOND);
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeDarkFrameCommand:Exposure length "+
