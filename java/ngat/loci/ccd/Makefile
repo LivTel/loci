@@ -8,7 +8,7 @@ BINDIR 		= $(LOCI_BIN_HOME)/java/$(PACKAGEDIR)
 SRCS 		= Command.java AbortExposureCommand.java \
 		  GetTemperatureCommand.java SetTemperatureCommand.java SetCoolingCommand.java \
 		  TakeBiasFrameCommand.java TakeDarkFrameCommand.java TakeExposureCommand.java \
-		  GetCameraStatusCommand.java
+		  GetCameraStatusCommand.java ClearHeaderKeywordsCommand.java SetHeaderKeywordCommand.java
 OBJS 		= $(SRCS:%.java=$(BINDIR)/%.class)
 
 top: $(OBJS)
