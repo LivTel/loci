@@ -145,13 +145,13 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 					    clearHeaderKeywordsCommand.getRunException());
 		}
 		loci.log(Logging.VERBOSITY_VERBOSE,
-			 "clearFitsHeaders:CLear Fits Header Command Finished with status: "+
+			 "clearFitsHeaders:Clear Fits Header Command Finished with status: "+
 			 clearHeaderKeywordsCommand.getReturnStatus()+
 			 " and message:"+clearHeaderKeywordsCommand.getMessage()+".");
 		if(clearHeaderKeywordsCommand.isReturnStatusSuccess() == false)
 		{
 			throw new Exception(this.getClass().getName()+
-					    ":clearFitsHeaders:Take Bias Frame Command failed with status: "+
+					    ":clearFitsHeaders:Clear Fits Header Command failed with status: "+
 					    clearHeaderKeywordsCommand.getReturnStatus()+
 					    " and message:"+clearHeaderKeywordsCommand.getMessage()+".");
 		}
@@ -178,6 +178,8 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 		String keyword = null;
 		String typeString = null;
 		String valueString = null;
+		String commentString = null;
+		String unitsString = null;
 		boolean done;
 		double dvalue;
 		int index,ivalue;
@@ -194,6 +196,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 			keyword = status.getProperty("loci.fits.keyword."+index);
 			if(keyword != null)
 			{
+				// value type
 				typeString = status.getProperty("loci.fits.value.type."+keyword);
 				if(typeString == null)
 				{
@@ -205,13 +208,19 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 					commandDone.setSuccessful(false);
 					return false;
 				}
+				// comment
+				commentString = status.getProperty("loci.fits.value.comment."+keyword);
+				// comment can be null if no comment exists
+				// units
+				unitsString = status.getProperty("loci.fits.value.units."+keyword);
+				// comment can be null if no units exist
 				// Add FITS header
 				try
 				{
 					if(typeString.equals("string"))
 					{
 						valueString = status.getProperty("loci.fits.value."+keyword);
-						addFitsHeader(keyword,valueString);
+						addFitsHeader(keyword,valueString,commentString,unitsString);
 					}
 					else if(typeString.equals("integer"))
 					{
@@ -219,7 +228,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 						
 						ivalue = status.getPropertyInteger("loci.fits.value."+keyword);
 						iov = new Integer(ivalue);
-						addFitsHeader(keyword,iov);
+						addFitsHeader(keyword,iov,commentString,unitsString);
 					}
 					else if(typeString.equals("float"))
 					{
@@ -227,7 +236,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 							
 						dvalue = status.getPropertyDouble("loci.fits.value."+keyword);
 						fov = new Float(dvalue);
-						addFitsHeader(keyword,fov);
+						addFitsHeader(keyword,fov,commentString,unitsString);
 					}
 					else if(typeString.equals("boolean"))
 					{
@@ -235,7 +244,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 						
 						bvalue = status.getPropertyBoolean("loci.fits.value."+keyword);
 						bov = new Boolean(bvalue);
-						addFitsHeader(keyword,bov);
+						addFitsHeader(keyword,bov,commentString,unitsString);
 					}
 					else
 					{
@@ -346,8 +355,6 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	protected void addISSFitsHeaderList(List list) throws Exception
 	{
 		FitsHeaderCardImage cardImage = null;
-		String commentString = null;
-		String unitsString = null;
 		
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			 ":addISSFitsHeaderList:started.");
@@ -357,19 +364,8 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 			cardImage = (FitsHeaderCardImage)(list.get(index));
 			loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+
 				 ":addISSFitsHeaderList:Adding "+cardImage.getKeyword()+" to C layer.");
-			addFitsHeader(cardImage.getKeyword(),cardImage.getValue());
-			// comment
-			commentString = cardImage.getComment();
-			if((commentString != null)&&(commentString.length() > 0))
-			{
-				//addFitsHeaderComment(cardImage.getKeyword(),commentString);
-			}
-			// units
-			unitsString = cardImage.getUnits();
-			if((unitsString != null)&&(unitsString.length() > 0))
-			{
-				//addFitsHeaderUnits(cardImage.getKeyword(),unitsString);
-			}
+			addFitsHeader(cardImage.getKeyword(),cardImage.getValue(),
+				      cardImage.getComment(),cardImage.getUnits());
 		}// end for
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+":addISSFitsHeaderList:finished.");
 	}
@@ -378,18 +374,25 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	 * Method to add the specified FITS header to the C layers list of FITS headers. 
 	 * @param keyword The FITS headers keyword.
 	 * @param value The FITS headers value - an object of class String,Integer,Float,Double,Boolean,Date.
+	 * @param commentString A string describing a comment to go in the FITS header card. 
+	 *        This can have a zero length or even bu null if no comment is required.
+	 * @param unitsString A string describing the units to go in the FITS header card 
+	 *        (at the beginning of the comment). 
+	 *        This can have a zero length or even bu null if no units are required.
 	 * @exception Exception Thrown if the Command internally errors, or the return code indicates a
 	 *            failure.
 	 * @see #status
+	 * @see #ccdFlaskHostname
+	 * @see #ccdFlaskPortNumber
 	 * @see #dateFitsFieldToString
 	 * @see ngat.loci.LociStatus#getProperty
 	 * @see ngat.loci.LociStatus#getPropertyInteger
 	 */
-	protected void addFitsHeader(String keyword,Object value) throws Exception
+	protected void addFitsHeader(String keyword,Object value,
+				     String commentString,String unitsString) throws Exception
 	{
-		//FitsHeaderAddCommand addCommand = null;
-		int portNumber,returnCode;
-		String hostname = null;
+		SetHeaderKeywordCommand setHeaderKeywordCommand = null;
+		int returnCode;
 		String errorString = null;
 
 		if(keyword == null)
@@ -401,53 +404,54 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 			throw new NullPointerException(this.getClass().getName()+
 						       ":addFitsHeader:value was null for keyword:"+keyword);
 		}
-		//addCommand = new FitsHeaderAddCommand();
-		// configure Flask comms
-		hostname = status.getProperty("loci.flask.ccd.hostname");
-		portNumber = status.getPropertyInteger("loci.flask.ccd.port_number");
-		//addCommand.setAddress(hostname);
-		//addCommand.setPortNumber(portNumber);
+		// get Flask API parameters
+		getCCDFlaskConnectionData();
+		// create command
+		setHeaderKeywordCommand = new SetHeaderKeywordCommand();
+		setHeaderKeywordCommand.setAddress(ccdFlaskHostname);
+		setHeaderKeywordCommand.setPortNumber(ccdFlaskPortNumber);
 		// set command parameters
+		setHeaderKeywordCommand.setKeyword(keyword);
 		if(value instanceof String)
 		{
 			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 				   ":addFitsHeader:Adding keyword "+keyword+" with String value "+value+".");
-			//addCommand.setCommand(keyword,(String)value);
+			setHeaderKeywordCommand.setValue((String)value);
 		}
 		else if(value instanceof Integer)
 		{
 			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 				   ":addFitsHeader:Adding keyword "+keyword+" with integer value "+
 				   ((Integer)value).intValue()+".");
-			//addCommand.setCommand(keyword,((Integer)value).intValue());
+			setHeaderKeywordCommand.setValue(((Integer)value).intValue());
 		}
 		else if(value instanceof Float)
 		{
 			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 				 ":addFitsHeader:Adding keyword "+keyword+" with float value "+
 				   ((Float)value).doubleValue()+".");
-			//addCommand.setCommand(keyword,((Float)value).doubleValue());
+			setHeaderKeywordCommand.setValue(((Float)value).doubleValue());
 		}
 		else if(value instanceof Double)
 		{
 			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 				   ":addFitsHeader:Adding keyword "+keyword+" with double value "+
 				   ((Double)value).doubleValue()+".");
-		        //addCommand.setCommand(keyword,((Double)value).doubleValue());
+		        setHeaderKeywordCommand.setValue(((Double)value).doubleValue());
 		}
 		else if(value instanceof Boolean)
 		{
 			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 				   ":addFitsHeader:Adding keyword "+keyword+" with boolean value "+
 				   ((Boolean)value).booleanValue()+".");
-			//addCommand.setCommand(keyword,((Boolean)value).booleanValue());
+			setHeaderKeywordCommand.setValue(((Boolean)value).booleanValue());
 		}
 		else if(value instanceof Date)
 		{
 			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 				   ":addFitsHeader:Adding keyword "+keyword+" with date value "+
 				   dateFitsFieldToString((Date)value)+".");
-			//addCommand.setCommand(keyword,dateFitsFieldToString((Date)value));
+			setHeaderKeywordCommand.setValue(dateFitsFieldToString((Date)value));
 		}
 		else
 		{
@@ -455,19 +459,38 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 							   ":addFitsHeader:value had illegal class:"+
 							   value.getClass().getName());
 		}
+		// set comment and units if available
+		if(commentString != null)
+			setHeaderKeywordCommand.setComment(commentString);
+		if(unitsString != null)
+			setHeaderKeywordCommand.setUnits(unitsString);
 		// actually send the command to the CCD flask API
-		//addCommand.sendCommand();
+		setHeaderKeywordCommand.run();
+		// check whether a run exception occurred
+		if(setHeaderKeywordCommand.getRunException() != null)
+		{
+			loci.error("addFitsHeader:SetHeaderKeywordCommand Failed:"+
+				   setHeaderKeywordCommand.getRunException(),
+				   setHeaderKeywordCommand.getRunException());
+			throw new Exception(this.getClass().getName()+
+					    ":addFitsHeader:SetHeaderKeywordCommand Failed:",
+					    setHeaderKeywordCommand.getRunException());
+		}
 		// check the parsed reply
-		//if(addCommand.getParsedReplyOK() == false)
-		//{
-		//	returnCode = addCommand.getReturnCode();
-		//	errorString = addCommand.getParsedReply();
-		//	loci.log(Logging.VERBOSITY_TERSE,"addFitsHeader:Command failed with return code "+
-		//		   returnCode+" and error string:"+errorString);
-		//	throw new Exception(this.getClass().getName()+
-		//			    ":addFitsHeader:Command failed with return code "+returnCode+
-		//		       	    " and error string:"+errorString);
-		//}
+		loci.log(Logging.VERBOSITY_VERBOSE,
+			 "addFitsHeader:Add Fits Header Command Finished with status: "+
+			 setHeaderKeywordCommand.getReturnStatus()+
+			 " and message:"+setHeaderKeywordCommand.getMessage()+".");
+		if(setHeaderKeywordCommand.isReturnStatusSuccess() == false)
+		{
+			loci.error("addFitsHeader:Command failed with return code "+
+				   setHeaderKeywordCommand.getReturnStatus()+
+				   " and message:"+setHeaderKeywordCommand.getMessage());
+			throw new Exception(this.getClass().getName()+
+					    ":addFitsHeader:Set Fits Header Keyword Command failed with status: "+
+					    setHeaderKeywordCommand.getReturnStatus()+
+					    " and message:"+setHeaderKeywordCommand.getMessage()+".");
+		}
 	}
 
 	/**
