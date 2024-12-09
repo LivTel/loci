@@ -98,7 +98,19 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 		if(testAbort(biasCommand,biasDone) == true)
 			return biasDone;
 		// get fits headers
-		clearFitsHeaders();
+		try
+		{
+			clearFitsHeaders();
+		}
+		catch(Exception e )
+		{
+			loci.error(this.getClass().getName()+":processCommand:clearFitsHeaders failed:",e);
+			biasDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+701);
+			biasDone.setErrorString(this.getClass().getName()+
+						   ":processCommand:clearFitsHeaders failed:"+e);
+			biasDone.setSuccessful(false);
+			return biasDone;
+		}
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:getting FITS headers from properties.");
 		if(setFitsHeaders(biasCommand,biasDone) == false)

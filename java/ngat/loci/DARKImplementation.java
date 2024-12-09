@@ -98,7 +98,19 @@ public class DARKImplementation extends CALIBRATEImplementation implements JMSCo
 		if(testAbort(darkCommand,darkDone) == true)
 			return darkDone;
 		// get fits headers
-		clearFitsHeaders();
+		try
+		{
+			clearFitsHeaders();
+		}
+		catch(Exception e )
+		{
+			loci.error(this.getClass().getName()+":processCommand:clearFitsHeaders failed:",e);
+			darkDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+901);
+			darkDone.setErrorString(this.getClass().getName()+
+						   ":processCommand:clearFitsHeaders failed:"+e);
+			darkDone.setSuccessful(false);
+			return darkDone;
+		}			
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:getting FITS headers from properties.");
 		if(setFitsHeaders(darkCommand,darkDone) == false)

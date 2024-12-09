@@ -113,9 +113,48 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 
 	/**
 	 * This routine clears the current set of FITS headers. 
+	 * <ul>
+	 * <li>We call getCCDFlaskConnectionData to get the Flask API configuration.
+	 * <li>We construct an instance of ClearHeaderKeywordsCommand, configure it, run the command,
+	 *     and check the reply.
+	 * </ul>
+	 * @see #getCCDFlaskConnectionData
+	 * @see #ccdFlaskHostname
+	 * @see #ccdFlaskPortNumber
+	 * @see ngat.loci.ccd.ClearHeaderKeywordsCommand
+	 * @exception Exception Thrown if ClearHeaderKeywordsCommand throws an exception, or returns a status that is
+	 *            not success.
 	 */
-	public void clearFitsHeaders()
+	public void clearFitsHeaders() throws Exception
 	{
+		ClearHeaderKeywordsCommand clearHeaderKeywordsCommand = null;
+		
+		// get CCD Flask API connection data
+		getCCDFlaskConnectionData();
+		// setup
+		clearHeaderKeywordsCommand = new ClearHeaderKeywordsCommand();
+		clearHeaderKeywordsCommand.setAddress(ccdFlaskHostname);
+		clearHeaderKeywordsCommand.setPortNumber(ccdFlaskPortNumber);
+		// run command
+		clearHeaderKeywordsCommand.run();
+		// check reply
+		if(clearHeaderKeywordsCommand.getRunException() != null)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":clearFitsHeaders:ClearHeaderKeywordsCommand Failed:",
+					    clearHeaderKeywordsCommand.getRunException());
+		}
+		loci.log(Logging.VERBOSITY_VERBOSE,
+			 "clearFitsHeaders:CLear Fits Header Command Finished with status: "+
+			 clearHeaderKeywordsCommand.getReturnStatus()+
+			 " and message:"+clearHeaderKeywordsCommand.getMessage()+".");
+		if(clearHeaderKeywordsCommand.isReturnStatusSuccess() == false)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":clearFitsHeaders:Take Bias Frame Command failed with status: "+
+					    clearHeaderKeywordsCommand.getReturnStatus()+
+					    " and message:"+clearHeaderKeywordsCommand.getMessage()+".");
+		}
 	}
 
 	/**
