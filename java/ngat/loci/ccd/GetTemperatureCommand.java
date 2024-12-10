@@ -56,33 +56,20 @@ public class GetTemperatureCommand extends Command implements Runnable
 	}
 	
 	/**
-	 * Return the temperature status returned by the Flask getTemperature end-point.
-	 * @return A string, the temperature status returned by the Flask getTemperature end-point 
-	 *         (with the JSON key 'temperature_status').
+	 * Return whether the cooler is enabled as returned by the Flask getTemperature end-point.
+	 * @return A boolean, whether the cooler is enabled as returned by the Flask getTemperature end-point 
+	 *         (with the JSON key 'cooling_enabled').
 	 * @see #endPoint
-	 * @exception JSONException Thrown if the key is not found or if the value is not an integer.
-	 * @exception IllegalArgumentException Thrown if the returned value of the "cooling_enabled" key 
-	 *            is not a known value.
+	 * @exception JSONException Thrown if the key is not found or if the value is not a boolean.
 	 */
-	public boolean getCoolingEnabled() throws org.json.JSONException, IllegalArgumentException
+	public boolean getCoolingEnabled() throws org.json.JSONException
 	{
-		int coolingEnabledInt;
-		
-		coolingEnabledInt = endPoint.getReturnValueInteger("cooling_enabled");
-		if(coolingEnabledInt == 0)
-			return false;
-		else if(coolingEnabledInt == 1)
-			return true;
-		else
-		{
-			throw new IllegalArgumentException(this.getClass().getName()+
-				 ":getCoolingEnabled:cooling_enabled returned unknown value:"+coolingEnabledInt);
-		}
+		return endPoint.getReturnValueBoolean("cooling_enabled");
 	}
 	
 	/**
 	 * Return the cooling status returned by the Flask getTemperature end-point.
-	 * @return A syting, the cooling status returned by the Flask getTemperature end-point 
+	 * @return A string, the cooling status returned by the Flask getTemperature end-point 
 	 *         (with the JSON key 'cooling_status').
 	 * @see #endPoint
 	 * @exception JSONException Thrown if the key is not found.
