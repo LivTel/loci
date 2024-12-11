@@ -1,5 +1,5 @@
 // SetHeaderKeywordCommand.java
-// $id$
+// $Id$
 package ngat.loci.ccd;
 
 import java.io.*;
