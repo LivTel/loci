@@ -311,7 +311,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 * This retrieved using an instance of GetExposureProgressCommand.
 	 * The "Exposure Length" keyword/value pair is generated from the returned exposure time. 
 	 * The "Elapsed Exposure Time" keyword/value pair is generated from the returned elapsed time. 
-	 * The "Reamaining Exposure Time" keyword/value pair is generated from the returned remaining time. 
+	 * The "Remaining Exposure Time" keyword/value pair is generated from the returned remaining time. 
 	 * @exception Exception Thrown if an error occurs.
 	 * @see #MILLISECONDS_PER_SECOND
 	 * @see #ccdFlaskHostname
