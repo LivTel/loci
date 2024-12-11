@@ -20,7 +20,7 @@ CALIBRATE_IMPL_SRCS 	= CALIBRATEImplementation.java BIASImplementation.java DARK
 EXPOSE_IMPL_SRCS	= #MULTRUNImplementation.java 
 INTERRUPT_IMPL_SRCS 	= ABORTImplementation.java GET_STATUSImplementation.java #REBOOTImplementation.java
 
-SETUP_IMPL_SRCS		= #CONFIGImplementation.java
+SETUP_IMPL_SRCS		= CONFIGImplementation.java
 OBJS 		= $(SRCS:%.java=$(BINDIR)/%.class)
 
 CONFIG_SRCS	= loci1.loci.net.properties loci1.loci.properties loci1.fits.properties \
