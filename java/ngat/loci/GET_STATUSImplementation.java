@@ -26,6 +26,10 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 */
 	public final static String RCSID = new String("$Id$");
 	/**
+	 * The number of milliseconds in one second.
+	 */
+	public final static int MILLISECONDS_PER_SECOND = 1000;
+	/**
 	 * The index in the commsInstrumentStatus array of the detector comms instrument status.
 	 * @see #commsInstrumentStatus
 	 */
@@ -125,9 +129,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 * <li>The "Instrument" status property is set to the "loci.get_status.instrument_name" property value.
 	 * <li>The detectorTemperatureInstrumentStatus is initialised.
 	 * <li>The "currentCommand" status hashtable value is set to the currently executing command.
-	 * <li>getStatusExposureIndex / getStatusExposureCount / getStatusExposureMultrun / getStatusExposureRun / 
-	 *     getStatusExposureWindow / getStatusExposureLength / 
-	 *     getStatusExposureStartTime are called to add some basic status to the hashtable.
+	 * <li>getExposureProgress is called to add some basic status to the hashtable.
 	 * <li>getIntermediateStatus is called if the GET_STATUS command level is at least intermediate.
 	 * <li>getFullStatusis called if the GET_STATUS command level is at least full.
 	 * </ul>
@@ -141,14 +143,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 * @see #commsInstrumentStatus
 	 * @see #getFlaskCCDConfig
 	 * @see #getExposureStatus
-	 * @see #getStatusExposureIndex
-	 * @see #getStatusExposureCount
-	 * @see #getStatusExposureMultrun
-	 * @see #getStatusExposureRun
-	 * @see #getStatusExposureLength
-	 * @see #getStatusExposureStartTime
-	 * @see #getStatusExposureCoaddCount
-	 * @see #getStatusExposureCoaddLength
+	 * @see #getExposureProgress
 	 * @see #getIntermediateStatus
 	 * @see #getFullStatus
 	 * @see #currentMode
@@ -196,15 +191,14 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 			// basic information
 			//getFilterWheelStatus();
 			// "Exposure Count" is searched for by the IcsGUI
-			//getStatusExposureCount(); 
+			//getStatusExposureCount();
+			// Exposure Progress
 			// "Exposure Length" is needed for IcsGUI
+			// "Elapsed Exposure Time" is needed for IcsGUI.
+			getExposureProgress();
 			//getStatusExposureLength();  
 			// "Exposure Start Time" is needed for IcsGUI
 			//getStatusExposureStartTime(); 
-			// "Elapsed Exposure Time" is needed for IcsGUI.
-			// This requires "Exposure Length" and "Exposure Start Time hashtable entries to have
-			// already been inserted by getStatusExposureLength/getStatusExposureStartTime
-			//getStatusExposureElapsedTime();
 			// "Exposure Number" is added in getStatusExposureIndex
 			//getStatusExposureIndex();
 			//getStatusExposureMultrun(); 
@@ -256,7 +250,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	
 	/**
 	 * Get the exposure status. 
-	 * This retrieved using an instance of StatusExposureStatusCommand.
+	 * This retrieved using an instance of GetCameraStatusCommand.
 	 * The "Camera Status" keyword/value pairs are generated from the returned status. 
 	 * The currentMode is set as either MODE_IDLE, or MODE_EXPOSING if the CCD Flask API getCameraStatus returns
 	 * "DRV_ACQUIRING".
@@ -310,6 +304,81 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 			currentMode = GET_STATUS_DONE.MODE_IDLE;
 		else if(cameraStatus.equals("DRV_ACQUIRING"))
 			currentMode = GET_STATUS_DONE.MODE_EXPOSING;
+	}
+
+	/**
+	 * Get the exposure progress. 
+	 * This retrieved using an instance of GetExposureProgressCommand.
+	 * The "Exposure Length" keyword/value pair is generated from the returned exposure time. 
+	 * The "Elapsed Exposure Time" keyword/value pair is generated from the returned elapsed time. 
+	 * The "Reamaining Exposure Time" keyword/value pair is generated from the returned remaining time. 
+	 * @exception Exception Thrown if an error occurs.
+	 * @see #MILLISECONDS_PER_SECOND
+	 * @see #ccdFlaskHostname
+	 * @see #ccdFlaskPortNumber
+	 * @see ngat.loci.ccd.GetExposureProgressCommand
+	 * @see ngat.loci.ccd.GetExposureProgressCommand#getExposureTime
+	 * @see ngat.loci.ccd.GetExposureProgressCommand#getElapsedTime
+	 * @see ngat.loci.ccd.GetExposureProgressCommand#getRemainingTime
+	 */
+	protected void getExposureProgress() throws Exception
+	{
+		GetExposureProgressCommand statusCommand = null;
+		Exception returnException = null;
+		int returnCode;
+		String errorString = null;
+		double elapsedExposureLengthS,exposureLengthS,remainingExposureLengthS;
+		int elapsedExposureLengthMs,exposureLengthMs,remainingExposureLengthMs;
+		
+		// Setup GetExposureProgressCommand
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getExposureProgress:started for CCD Flask API :Hostname: "+
+			 ccdFlaskHostname+" Port Number: "+ccdFlaskPortNumber+".");
+		statusCommand = new GetExposureProgressCommand();
+		statusCommand.setAddress(ccdFlaskHostname);
+		statusCommand.setPortNumber(ccdFlaskPortNumber);
+		// actually send the command to the CCD Flask API
+		statusCommand.run();
+		// check the parsed reply
+		if(statusCommand.isReturnStatusSuccess() == false)
+		{
+			returnCode = statusCommand.getHttpResponseCode();
+			errorString = statusCommand.getReturnStatus();
+			returnException = statusCommand.getRunException();
+			loci.log(Logging.VERBOSITY_TERSE,
+				 "getExposureProgress:command failed with return code "+
+				 returnCode+" error string:"+errorString+" run exception:"+returnException);
+			throw new Exception(this.getClass().getName()+
+					    ":getExposureProgress:command failed with return code "+
+					    returnCode+" and error string:"+errorString,returnException);
+		}
+		// "Exposure Length"
+		// GetExposureProgressCommand returns this in decimal seconds, we want it in integer milliseconds
+		exposureLengthS = statusCommand.getExposureTime();
+		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Exposure Length is:"+
+			 exposureLengthS+" seconds.");
+		exposureLengthMs = (int)(exposureLengthS*((double)MILLISECONDS_PER_SECOND));
+		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Exposure Length is:"+
+			 exposureLengthMs+" milliseconds.");
+		hashTable.put("Exposure Length",new Integer(exposureLengthMs));
+		// "Elapsed Exposure Time"
+		// GetExposureProgressCommand returns this in decimal seconds, we want it in integer milliseconds
+		elapsedExposureLengthS = statusCommand.getElapsedTime();
+		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Elapsed Exposure Length is:"+
+			 elapsedExposureLengthS+" seconds.");
+		elapsedExposureLengthMs = (int)(elapsedExposureLengthS*((double)MILLISECONDS_PER_SECOND));
+		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Elapsed Exposure Length is:"+
+			 elapsedExposureLengthMs+" milliseconds.");
+		hashTable.put("Elapsed Exposure Time",new Integer(elapsedExposureLengthMs));
+		// "Remaining Exposure Time"
+		// This is not a field that the IcsGUI looks for, but we have the information, so lets add it
+		// GetExposureProgressCommand returns this in decimal seconds, we want it in integer milliseconds
+		remainingExposureLengthS = statusCommand.getRemainingTime();
+		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Remaining Exposure Time is:"+
+			 remainingExposureLengthS+" seconds.");
+		remainingExposureLengthMs = (int)(remainingExposureLengthS*((double)MILLISECONDS_PER_SECOND));
+		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Remaining Exposure Time is:"+
+			 remainingExposureLengthMs+" milliseconds.");
+		hashTable.put("Remaining Exposure Time",new Integer(remainingExposureLengthMs));
 	}
 
 	/**
