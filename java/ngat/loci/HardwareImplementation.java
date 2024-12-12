@@ -284,6 +284,49 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	}
 
 	/**
+	 * Set some dynamically generate (per-frame) FITS headers.
+	 * @param command The command being implemented that made this call to the ISS. This is used
+	 * 	for error logging.
+	 * @param commandDone A COMMAND_DONE subclass specific to the command being implemented. If an
+	 * 	error occurs the relevant fields are filled in with the error.
+	 * @param obsType A string representing the type of data been collected.
+	 * @param exposureLength The length of the exposure in milliseconds.
+	 * @param exposureCount The number of exposures in the MULTRUN.
+	 * @param exposureIndex Which exposure in the MULTRUN we are currently doing (1..exposureCount).
+	 * @return The routine returns a boolean to indicate whether the operation was completed
+	 *  	successfully.
+	 * @see #addFitsHeader
+	 */
+	public boolean setPerFrameFitsHeaders(COMMAND command,COMMAND_DONE commandDone,String obsType,
+					      int exposureLength,int exposureCount,int exposureIndex)
+	{
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
+			 ":setPerFrameFitsHeaders:Started.");
+		try
+		{
+			// OBSTYPE
+			addFitsHeader("OBSTYPE",obsType,"What type of observation has been taken",null);
+			// EXPNUM
+			addFitsHeader("EXPNUM",exposureIndex,"Number of exposure within Multrun",null);
+			// EXPTOTAL
+			addFitsHeader("EXPTOTAL",exposureCount,"Total number of exposures within Multrun",null);
+		}
+		catch(Exception e)
+		{
+			loci.error(this.getClass().getName()+
+				   ":setPerFrameFitsHeaders:Failed to add FITS Header:",e);
+			commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1204);
+			commandDone.setErrorString(this.getClass().getName()+
+						   ":setPerFrameFitsHeaders:Failed to add FITS Header:"+e);
+			commandDone.setSuccessful(false);
+			return false;
+		}	
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
+			 ":setPerFrameFitsHeaders:Finished.");
+		return true;
+	}
+
+	/**
 	 * This routine tries to get a set of FITS headers for an exposure, by issuing a GET_FITS command
 	 * to the ISS. The results from this command are put into the C layers list of FITS headers by calling
 	 * addISSFitsHeaderList.
