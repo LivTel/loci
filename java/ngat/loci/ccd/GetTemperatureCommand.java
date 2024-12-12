@@ -58,13 +58,27 @@ public class GetTemperatureCommand extends Command implements Runnable
 	/**
 	 * Return whether the cooler is enabled as returned by the Flask getTemperature end-point.
 	 * @return A boolean, whether the cooler is enabled as returned by the Flask getTemperature end-point 
-	 *         (with the JSON key 'cooling_enabled').
+	 *         (with the JSON key 'cooling_enabled'). This returns an integer which is converted into a boolean.
 	 * @see #endPoint
-	 * @exception JSONException Thrown if the key is not found or if the value is not a boolean.
+	 * @exception JSONException Thrown if the key is not found or if the value is not an integer.
+	 * @exception IllegalArgumentException Thrown if the 'cooling_enabled' value is not a valid integer (either 0 or 1).
 	 */
-	public boolean getCoolingEnabled() throws org.json.JSONException
+	public boolean getCoolingEnabled() throws org.json.JSONException, IllegalArgumentException
 	{
-		return endPoint.getReturnValueBoolean("cooling_enabled");
+		boolean coolingEnabled;
+		int coolingEnabledInt;
+
+		coolingEnabledInt = endPoint.getReturnValueInteger("cooling_enabled");
+		if(coolingEnabledInt == 0)
+			coolingEnabled = false;
+		else if(coolingEnabledInt == 1)
+			coolingEnabled = true;
+		else
+		{
+			throw new IllegalArgumentException(this.getClass().getName()+
+							   ":getCoolingEnabled:cooling_enabled returned illegal integer:"+coolingEnabledInt);
+		}
+		return coolingEnabled;
 	}
 	
 	/**
