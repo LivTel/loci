@@ -77,19 +77,25 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 	/**
 	 * This method implements the MULTRUN command. 
 	 * <ul>
+	 * <li>We intiialise the status objects exposure status (setExposureCount / setExposureNumber).
 	 * <li>It moves the fold mirror to the correct location.
+	 * <li>We determine the OBSTYPE from the standard flag.
 	 * <li>clearFitsHeaders is called.
 	 * <li>setFitsHeaders is called to get some FITS headers from the properties files and add them to the C layers.
 	 * <li>For each exposure it performs the following:
 	 *	<ul>
+	 *      <li>We call setPerFrameFitsHeaders to set the per-frame FITS headers.
 	 *      <li>getFitsHeadersFromISS is called to gets some FITS headers from the ISS (RCS). 
-	 *          These are sent on to the C layer.
-	 * 	<li>It performs an exposure and saves the data from this to disc.
+	 *          These are sent on to the CCD Flask API.
+	 * 	<li>It performs an exposure by calling sendTakeExposureCommand.
+	 * 	<li>We update the status object (setExposureNumber);
+	 *      <li>We send a MULTRUN_ACK to the client updating them with the returned filename, 
+	 *          and keeping the connection open.
 	 * 	<li>Keeps track of the generated filenames in the list.
 	 * 	</ul>
 	 * <li>It sets up the return values to return to the client.
 	 * </ul>
-	 * The resultant filename or the relevant error code is put into the an object of class MULTRUN_DONE and
+	 * The resultant last filename or the relevant error code is put into the an object of class MULTRUN_DONE and
 	 * returned. During execution of these operations the abort flag is tested to see if we need to
 	 * stop the implementation of this command.
 	 * @see #sendTakeExposureCommand
@@ -99,6 +105,7 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#getFitsHeadersFromISS
+	 * @see ngat.loci.HardwareImplementation#setPerFrameFitsHeaders
 	 */
 	public COMMAND_DONE processCommand(COMMAND command)
 	{
@@ -162,7 +169,7 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 				return multRunDone;
 			// do exposure
 			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
-				 ":processCommand:Starting sendTakeBiasFrameCommand.");
+				 ":processCommand:Starting sendTakeExposureCommand.");
 			try
 			{
 				filename = sendTakeExposureCommand(multRunCommand.getExposureTime());
