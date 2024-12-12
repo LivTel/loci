@@ -26,10 +26,6 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 */
 	public final static String RCSID = new String("$Id$");
 	/**
-	 * The number of milliseconds in one second.
-	 */
-	public final static int MILLISECONDS_PER_SECOND = 1000;
-	/**
 	 * The index in the commsInstrumentStatus array of the detector comms instrument status.
 	 * @see #commsInstrumentStatus
 	 */
@@ -129,6 +125,10 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 * <li>The "Instrument" status property is set to the "loci.get_status.instrument_name" property value.
 	 * <li>The detectorTemperatureInstrumentStatus is initialised.
 	 * <li>The "currentCommand" status hashtable value is set to the currently executing command.
+	 * <li>We set "Exposure Count" to the currently executing command's expected exposure count stored in
+	 *     the LociStatus instance LociStatus.getExposureCount().
+	 * <li>We set "Exposure Number" to the currently executing command's current exposure index stored in
+	 *     the LociStatus instance LociStatus.getExposureNumber().
 	 * <li>getExposureProgress is called to add some basic status to the hashtable.
 	 * <li>getIntermediateStatus is called if the GET_STATUS command level is at least intermediate.
 	 * <li>getFullStatusis called if the GET_STATUS command level is at least full.
@@ -148,7 +148,8 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 * @see #getFullStatus
 	 * @see #currentMode
 	 * @see LociStatus#getProperty
-	 * @see LociStatus#getCurrentCommand
+	 * @see LociStatus#getExposureCount
+	 * @see LociStatus#getExposureNumber
 	 * @see GET_STATUS#getLevel
 	 * @see ngat.message.ISS_INST.GET_STATUS_DONE#KEYWORD_INSTRUMENT_STATUS
 	 * @see ngat.message.ISS_INST.GET_STATUS_DONE#KEYWORD_DETECTOR_TEMPERATURE_INSTRUMENT_STATUS
@@ -191,7 +192,9 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 			// basic information
 			//getFilterWheelStatus();
 			// "Exposure Count" is searched for by the IcsGUI
-			//getStatusExposureCount();
+			hashTable.put("Exposure Count",new Integer(status.getExposureCount()));
+			// "Exposure Number" is searched for by the IcsGUI
+			hashTable.put("Exposure Number",new Integer(status.getExposureNumber()));
 			// Exposure Progress
 			// "Exposure Length" is needed for IcsGUI
 			// "Elapsed Exposure Time" is needed for IcsGUI.
@@ -199,8 +202,6 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 			//getStatusExposureLength();  
 			// "Exposure Start Time" is needed for IcsGUI
 			//getStatusExposureStartTime(); 
-			// "Exposure Number" is added in getStatusExposureIndex
-			//getStatusExposureIndex();
 			//getStatusExposureMultrun(); 
 			//getStatusExposureRun();
 		}
@@ -313,7 +314,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 * The "Elapsed Exposure Time" keyword/value pair is generated from the returned elapsed time. 
 	 * The "Remaining Exposure Time" keyword/value pair is generated from the returned remaining time. 
 	 * @exception Exception Thrown if an error occurs.
-	 * @see #MILLISECONDS_PER_SECOND
+	 * @see LociConstants#MILLISECONDS_PER_SECOND
 	 * @see #ccdFlaskHostname
 	 * @see #ccdFlaskPortNumber
 	 * @see ngat.loci.ccd.GetExposureProgressCommand
@@ -356,7 +357,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 		exposureLengthS = statusCommand.getExposureTime();
 		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Exposure Length is:"+
 			 exposureLengthS+" seconds.");
-		exposureLengthMs = (int)(exposureLengthS*((double)MILLISECONDS_PER_SECOND));
+		exposureLengthMs = (int)(exposureLengthS*((double)LociConstants.MILLISECONDS_PER_SECOND));
 		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Exposure Length is:"+
 			 exposureLengthMs+" milliseconds.");
 		hashTable.put("Exposure Length",new Integer(exposureLengthMs));
@@ -365,7 +366,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 		elapsedExposureLengthS = statusCommand.getElapsedTime();
 		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Elapsed Exposure Length is:"+
 			 elapsedExposureLengthS+" seconds.");
-		elapsedExposureLengthMs = (int)(elapsedExposureLengthS*((double)MILLISECONDS_PER_SECOND));
+		elapsedExposureLengthMs = (int)(elapsedExposureLengthS*((double)LociConstants.MILLISECONDS_PER_SECOND));
 		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Elapsed Exposure Length is:"+
 			 elapsedExposureLengthMs+" milliseconds.");
 		hashTable.put("Elapsed Exposure Time",new Integer(elapsedExposureLengthMs));
@@ -375,7 +376,8 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 		remainingExposureLengthS = statusCommand.getRemainingTime();
 		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Remaining Exposure Time is:"+
 			 remainingExposureLengthS+" seconds.");
-		remainingExposureLengthMs = (int)(remainingExposureLengthS*((double)MILLISECONDS_PER_SECOND));
+		remainingExposureLengthMs = (int)(remainingExposureLengthS*
+						  ((double)LociConstants.MILLISECONDS_PER_SECOND));
 		loci.log(Logging.VERBOSITY_VERY_VERBOSE,"getExposureProgress:Remaining Exposure Time is:"+
 			 remainingExposureLengthMs+" milliseconds.");
 		hashTable.put("Remaining Exposure Time",new Integer(remainingExposureLengthMs));
