@@ -25,10 +25,6 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * Revision Control System id string, showing the version of the Class.
 	 */
 	public final static String RCSID = new String("$Id$");
-	/**
-	 * The number of milliseconds in one second.
-	 */
-	public final static int MILLISECONDS_PER_SECOND = 1000;
 
 	/**
 	 * This method calls the super-classes method. 
@@ -65,8 +61,7 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * Send a 'takeBiasFrame' command to the loci-ctrl CCD Flask API.
 	 * <ul>
 	 * <li>We call getCCDFlaskConnectionData to setup ccdFlaskHostname and ccdFlaskPortNumber.
-	 * <li>We setup and configure an instance of TakeBiasFrameCommand, 
-	 *     with connection details and the generated filename.
+	 * <li>We setup and configure an instance of TakeBiasFrameCommand, with connection details.
 	 * <li>We run the instance of TakeBiasFrameCommand.
 	 * <li>We check whether a run exception occured, and throw it as an exception if so.
 	 * <li>We log the return status and message.
@@ -96,7 +91,6 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		takeBiasFrameCommand = new TakeBiasFrameCommand();
 		takeBiasFrameCommand.setAddress(ccdFlaskHostname);
 		takeBiasFrameCommand.setPortNumber(ccdFlaskPortNumber);
-		//takeBiasFrameCommand.setFilename(filename);
 		// run command
 		takeBiasFrameCommand.run();
 		// check reply
@@ -129,7 +123,7 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * <ul>
 	 * <li>We call getCCDFlaskConnectionData to setup ccdFlaskHostname and ccdFlaskPortNumber.
 	 * <li>We setup and configure an instance of TakeDarkFrameCommand, 
-	 *     with connection details, exposure length and the generated filename.
+	 *     with connection details and exposure length.
 	 * <li>We run the instance of TakeDarkFrameCommand.
 	 * <li>We check whether a run exception occured, and throw it as an exception if so.
 	 * <li>We log the return status and message.
@@ -159,7 +153,7 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		// get CCD Flask API connection data
 		getCCDFlaskConnectionData();
 		// convert exposure length from milliseconds to decimal seconds
-		exposureLengthS = ((double)exposureLength)/((double)MILLISECONDS_PER_SECOND);
+		exposureLengthS = ((double)exposureLength)/((double)LociConstants.MILLISECONDS_PER_SECOND);
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeDarkFrameCommand:Exposure length "+
 			 exposureLengthS+" seconds.");
 		// setup TakeDarkFrameCommand
@@ -167,7 +161,6 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		takeDarkFrameCommand.setAddress(ccdFlaskHostname);
 		takeDarkFrameCommand.setPortNumber(ccdFlaskPortNumber);
 		takeDarkFrameCommand.setExposureLength(exposureLengthS);
-		//takeDarkFrameCommand.setFilename(filename);
 		// run command
 		takeDarkFrameCommand.run();
 		// check reply
