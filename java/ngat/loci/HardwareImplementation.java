@@ -251,8 +251,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 						loci.error(this.getClass().getName()+
 							   ":setFitsHeaders:Unknown value type "+typeString+
 							   " for keyword:"+keyword);
-						commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+
-									1204);
+						commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1204);
 						commandDone.setErrorString(this.getClass().getName()+
 									   ":setFitsHeaders:Unknown value type "+
 									   typeString+" for keyword:"+keyword);
@@ -315,7 +314,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 		{
 			loci.error(this.getClass().getName()+
 				   ":setPerFrameFitsHeaders:Failed to add FITS Header:",e);
-			commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1204);
+			commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1208);
 			commandDone.setErrorString(this.getClass().getName()+
 						   ":setPerFrameFitsHeaders:Failed to add FITS Header:"+e);
 			commandDone.setSuccessful(false);
@@ -406,7 +405,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 		{
 			cardImage = (FitsHeaderCardImage)(list.get(index));
 			loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+
-				 ":addISSFitsHeaderList:Adding "+cardImage.getKeyword()+" to C layer.");
+				 ":addISSFitsHeaderList:Adding "+cardImage.getKeyword()+" to CCD Flask API layer.");
 			addFitsHeader(cardImage.getKeyword(),cardImage.getValue(),
 				      cardImage.getComment(),cardImage.getUnits());
 		}// end for
@@ -504,9 +503,15 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 		}
 		// set comment and units if available
 		if(commentString != null)
-			setHeaderKeywordCommand.setComment(commentString);
+		{
+			if(commentString.length() > 0)
+				setHeaderKeywordCommand.setComment(commentString);
+		}
 		if(unitsString != null)
-			setHeaderKeywordCommand.setUnits(unitsString);
+		{
+			if(unitsString.length() > 0)
+				setHeaderKeywordCommand.setUnits(unitsString);
+		}
 		// actually send the command to the CCD flask API
 		setHeaderKeywordCommand.run();
 		// check whether a run exception occurred
