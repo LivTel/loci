@@ -52,4 +52,8 @@ public class LociConstants
 	 * This number is the default for the <b>loci.thread.priority.tit</b> property, if it does not exist.
 	 */
 	public final static int LOCI_DEFAULT_THREAD_PRIORITY_TIT		= Thread.MIN_PRIORITY;
+	/**
+	 * The number of milliseconds in one second.
+	 */
+	public final static int MILLISECONDS_PER_SECOND = 1000;
 }
