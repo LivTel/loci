@@ -111,6 +111,18 @@ public class LociStatus
 	 */
 	private Properties properties = null;
 	/**
+	 * The count of the number of exposures needed for the current command to be implemented.
+	 */
+	private int exposureCount = 0;
+	/**
+	 * The number of the current exposure being taken.
+	 */
+	private int exposureNumber = 0;
+	/**
+	 * The filename of the current exposure being taken (if any).
+	 */
+	private String exposureFilename = null;
+	/**
 	 * The current unique config ID, held on disc over reboots.
 	 * Incremented each time a new configuration is attained,
 	 * and stored in the FITS header.
@@ -347,6 +359,66 @@ public class LociStatus
 	public synchronized Thread getCurrentThread()
 	{
 		return currentThread;
+	}
+
+	/**
+	 * Set the number of exposures needed to complete the current command implementation.
+	 * @param c The total number of exposures needed.
+	 * @see #exposureCount
+	 */
+	public synchronized void setExposureCount(int c)
+	{
+		exposureCount = c;
+	}
+
+	/**
+	 * Get the number of exposures needed to complete the current command implementation.
+	 * @return Returns the number of exposures needed.
+	 * @see #exposureCount
+	 */
+	public synchronized int getExposureCount()
+	{
+		return exposureCount;
+	}
+
+	/**
+	 * Set the current exposure number the current command implementation is on.
+	 * @param n The current exposure number.
+	 * @see #exposureNumber
+	 */
+	public synchronized void setExposureNumber(int n)
+	{
+		exposureNumber = n;
+	}
+
+	/**
+	 * Get the current exposure number the current command implementation is on.
+	 * @return Returns the current exposure number.
+	 * @see #exposureNumber
+	 */
+	public synchronized int getExposureNumber()
+	{
+		return exposureNumber;
+	}
+
+	/**
+	 * Set the current exposure filename being taken.
+	 * @param f The current filename.
+	 * @see #exposureFilename
+	 */
+	public synchronized void setExposureFilename(String f)
+	{
+		exposureFilename = f;
+	}
+
+	/**
+	 * Get the current exposure filename.
+	 * @return Returns the current exposure filename.
+	 * @see #exposureFilename
+	 */
+	public synchronized String getExposureFilename()
+	{
+		return exposureFilename;
 	}
 
 	/**
