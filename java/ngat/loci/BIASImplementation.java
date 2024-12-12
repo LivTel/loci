@@ -83,6 +83,8 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 	 * <li>The done object is setup, and the generated filename returned. 
 	 * </ul>
 	 * @see #testAbort
+	 * @see ngat.loci.LociStatus#setExposureCount
+	 * @see ngat.loci.LociStatus#setExposureNumber
 	 * @see ngat.loci.CALIBRATEImplementation#sendTakeBiasFrameCommand
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
@@ -97,6 +99,9 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 		loci.log(Logging.VERBOSITY_TERSE,this.getClass().getName()+":processCommand:Started.");
 		if(testAbort(biasCommand,biasDone) == true)
 			return biasDone;
+	// setup exposure status.
+		status.setExposureCount(1);
+		status.setExposureNumber(0);
 		// get fits headers
 		try
 		{
@@ -115,6 +120,10 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 			   ":processCommand:getting FITS headers from properties.");
 		if(setFitsHeaders(biasCommand,biasDone) == false)
 			return biasDone;
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
+			   ":processCommand:Setting per-frame FITS headers.");
+		if(setPerFrameFitsHeaders(biasCommand,biasDone,FitsHeaderDefaults.OBSTYPE_VALUE_BIAS,0,1,1) == false)
+				return biasDone;
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:getting FITS headers from ISS.");
 		if(getFitsHeadersFromISS(biasCommand,biasDone) == false)
@@ -140,6 +149,9 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 			biasDone.setSuccessful(false);
 			return biasDone;
 		}
+		// update status
+		status.setExposureNumber(1);
+		status.setExposureFilename(filename);
 		// setup return values.
 		// setup bias done
 		biasDone.setFilename(filename);

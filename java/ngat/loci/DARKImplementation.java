@@ -83,6 +83,8 @@ public class DARKImplementation extends CALIBRATEImplementation implements JMSCo
 	 * <li>The done object is setup, and the generated filename returned. 
 	 * </ul>
 	 * @see #testAbort
+	 * @see ngat.loci.LociStatus#setExposureCount
+	 * @see ngat.loci.LociStatus#setExposureNumber
 	 * @see ngat.loci.CALIBRATEImplementation#sendTakeDarkFrameCommand
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
@@ -97,6 +99,9 @@ public class DARKImplementation extends CALIBRATEImplementation implements JMSCo
 		loci.log(Logging.VERBOSITY_TERSE,this.getClass().getName()+":processCommand:Started.");
 		if(testAbort(darkCommand,darkDone) == true)
 			return darkDone;
+	// setup exposure status.
+		status.setExposureCount(1);
+		status.setExposureNumber(0);
 		// get fits headers
 		try
 		{
@@ -115,6 +120,11 @@ public class DARKImplementation extends CALIBRATEImplementation implements JMSCo
 			   ":processCommand:getting FITS headers from properties.");
 		if(setFitsHeaders(darkCommand,darkDone) == false)
 			return darkDone;
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
+			   ":processCommand:Setting per-frame FITS headers.");
+		if(setPerFrameFitsHeaders(darkCommand,darkDone,FitsHeaderDefaults.OBSTYPE_VALUE_DARK,
+					  darkCommand.getExposureTime(),1,1) == false)
+				return darkDone;
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:getting FITS headers from ISS.");
 		if(getFitsHeadersFromISS(darkCommand,darkDone) == false)
@@ -137,6 +147,9 @@ public class DARKImplementation extends CALIBRATEImplementation implements JMSCo
 			darkDone.setSuccessful(false);
 			return darkDone;
 		}
+		// update status
+		status.setExposureNumber(1);
+		status.setExposureFilename(filename);
 		// setup return values.
 		// setup dark done
 		darkDone.setFilename(filename);
