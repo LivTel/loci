@@ -64,7 +64,6 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 	 */
 	public ACK calculateAcknowledgeTime(COMMAND command)
 	{
-		MULTRUN multRunCommand = (MULTRUN)command;
 		ACK acknowledge = null;
 
 		acknowledge = new ACK(command.getId());
@@ -76,7 +75,7 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 	/**
 	 * This method implements the MULTRUN command. 
 	 * <ul>
-	 * <li>We intiialise the status objects exposure status (setExposureCount / setExposureNumber).
+	 * <li>We initialise the status objects exposure status (setExposureCount / setExposureNumber).
 	 * <li>It moves the fold mirror to the correct location.
 	 * <li>clearFitsHeaders is called.
 	 * <li>setFitsHeaders is called to get some FITS headers from the properties files and add them to the C layers.
