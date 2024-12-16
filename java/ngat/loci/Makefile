@@ -16,7 +16,7 @@ IMPL_SRCS = $(BASE_IMPL_SRCS) $(CALIBRATE_IMPL_SRCS) $(EXPOSE_IMPL_SRCS) $(INTER
 BASE_IMPL_SRCS		= CommandImplementation.java JMSCommandImplementation.java UnknownCommandImplementation.java \
 			  HardwareImplementation.java
 CALIBRATE_IMPL_SRCS 	= CALIBRATEImplementation.java BIASImplementation.java DARKImplementation.java \
-			  MULTBIASImplementation.java #MULTDARKImplementation.java
+			  MULTBIASImplementation.java MULTDARKImplementation.java
 EXPOSE_IMPL_SRCS	= MULTRUNImplementation.java 
 INTERRUPT_IMPL_SRCS 	= ABORTImplementation.java GET_STATUSImplementation.java #REBOOTImplementation.java
 
