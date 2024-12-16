@@ -73,7 +73,7 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 	}
 
 	/**
-	 * This method implements the MULTRUN command. 
+	 * This method implements the MULTBIAS command. 
 	 * <ul>
 	 * <li>We initialise the status objects exposure status (setExposureCount / setExposureNumber).
 	 * <li>It moves the fold mirror to the correct location.
@@ -86,7 +86,7 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 	 *          These are sent on to the CCD Flask API.
 	 * 	<li>It performs an exposure by calling sendTakeBiasFrameCommand.
 	 * 	<li>We update the status object (setExposureNumber);
-	 *      <li>We send a MULTBIAS_ACK to the client updating them with the returned filename, 
+	 *      <li>We send a FILENAME_ACK to the client updating them with the returned filename, 
 	 *          and keeping the connection open.
 	 * 	<li>Keeps track of the generated filenames in the list.
 	 * 	</ul>
@@ -120,11 +120,6 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 	// setup exposure status.
 		status.setExposureCount(exposureCount);
 		status.setExposureNumber(0);
-	// move the fold mirror to the correct location
-		if(moveFold(multBiasCommand,multBiasDone) == false)
-			return multBiasDone;
-		if(testAbort(multBiasCommand,multBiasDone) == true)
-			return multBiasDone;
 		// initial FITS headers setup
 		try
 		{
@@ -141,7 +136,7 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 		}			
 		if(setFitsHeaders(multBiasCommand,multBiasDone) == false)
 			return multBiasDone;
-	// do exposures
+	// do bias frames
 		index = 0;
 		reduceFilenameList = new Vector();
 		while(index < multBiasCommand.getNumberExposures())
