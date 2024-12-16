@@ -52,7 +52,7 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
          * <ul>
          * <li>We construct an ACK object instance.
 	 * <li>The acknowledge time is set to the MULTRUN exposure length plus the maximum readout time
-	 *     (retrieved from the Loci status object) plus the server conenction thread's default acknowledge time.
+	 *     (retrieved from the Loci status object) plus the server connection thread's default acknowledge time.
          * </ul>
 	 * @param command The command instance we are implementing.
 	 * @return An instance of ACK with the timeToComplete set.
