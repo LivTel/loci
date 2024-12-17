@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  loci-java-layer:
+    build:
+      context: /
+      dockerfile: /home/dev/src/loci/images/loci_java_layer
+    container_name: loci-java-layer
+    privileged: true
+    volumes:
+      - /icc:/icc
+      - /data:/data
+    restart: unless-stopped
+    ports:
+      # loci JMS server port
+      - "7679:7679"
+      # loci TIT server port
+      - "8473:8473"
+      # ISS port - this is outgoing
+      #- "7383:7383"
