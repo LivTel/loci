@@ -53,7 +53,6 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 	 * @see ngat.message.base.ACK#setTimeToComplete
 	 * @see LociStatus#getMaxReadoutTime
 	 * @see LociTCPServerConnectionThread#getDefaultAcknowledgeTime
-	 * @see CALIBRATEImplementation#MILLISECONDS_PER_SECOND
 	 * @see #status
 	 * @see #serverConnectionThread
 	 */
