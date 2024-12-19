@@ -10,6 +10,7 @@ import ngat.fits.*;
 import ngat.message.base.*;
 import ngat.message.ISS_INST.*;
 import ngat.loci.ccd.*;
+import ngat.loci.filterwheel.*;
 import ngat.util.logging.*;
 
 /**
@@ -292,6 +293,78 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 		return true;
 	}
 
+	/**
+	 * Get the current filter wheel position, and set some FITS headers accordingly.
+	 * @param command The command being implemented that made this call to the ISS. This is used
+	 * 	for error logging.
+	 * @param commandDone A COMMAND_DONE subclass specific to the command being implemented. If an
+	 * 	error occurs the relevant fields are filled in with the error.
+	 * @return The routine returns a boolean to indicate whether the operation was completed
+	 *  	successfully.
+	 * @see #filterWheelFlaskHostname
+	 * @see #filterWheelFlaskPortNumber
+	 * @see #addFitsHeader
+	 * @see #getFilterWheelFlaskConnectionData
+	 * @see ngat.loci.filterwheel.GetFilterPositionCommand
+	 */
+	public boolean setFilterWheelFitsHeaders(COMMAND command,COMMAND_DONE commandDone)
+	{
+		GetFilterPositionCommand filterPositionCommand = null;
+		Exception returnException = null;
+		String filterName = null;
+		int returnCode;
+		
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
+			 ":setFilterWheelFitsHeaders:Started.");
+		try
+		{
+			// get Flask API parameters
+			getFilterWheelFlaskConnectionData();
+			filterPositionCommand = new GetFilterPositionCommand();
+			filterPositionCommand.setAddress(filterWheelFlaskHostname);
+			filterPositionCommand.setPortNumber(filterWheelFlaskPortNumber);
+			// actually send the command to the filter wheel Flask API
+			filterPositionCommand.run();
+			// check the parsed reply
+			if(filterPositionCommand.isReturnStatusSuccess() == false)
+			{
+				returnCode = filterPositionCommand.getHttpResponseCode();
+				returnException = filterPositionCommand.getRunException();
+				loci.log(Logging.VERBOSITY_TERSE,this.getClass().getName()+
+					 ":setFilterWheelFitsHeaders:get filter position command failed with return code "+
+					 returnCode+" run exception:"+returnException);
+				loci.error(this.getClass().getName()+
+					   ":setFilterWheelFitsHeaders:get filter position command failed with return code "+
+					   returnCode+" run exception:"+returnException,returnException);
+				commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1209);
+				commandDone.setErrorString(this.getClass().getName()+
+							   ":setFilterWheelFitsHeaders:get filter position command failed with return code "+
+							   returnCode+" run exception:"+returnException);
+				commandDone.setSuccessful(false);
+				return false;
+			}
+			// get the current filter name
+			filterName = filterPositionCommand.getFilterName();
+			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
+				 ":setFilterWheelFitsHeaders:Current filter name is:"+filterName);
+		}
+		catch(Exception e)
+		{
+			loci.error(this.getClass().getName()+
+				   ":setFilterWheelFitsHeaders:get filter position command failed:",e);
+			commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1210);
+			commandDone.setErrorString(this.getClass().getName()+
+						   ":setFilterWheelFitsHeaders:get filter position command failed:"+e);
+			commandDone.setSuccessful(false);
+			return false;
+		}
+		// set headers based on name
+		
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
+			 ":setFilterWheelFitsHeaders:Finished.");
+		return true;
+	}
+	
 	/**
 	 * Set some dynamically generate (per-frame) FITS headers.
 	 * @param command The command being implemented that made this call to the ISS. This is used
