@@ -237,9 +237,26 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 
 	/**
 	 * Get the status of the filter wheel.
+	 * <ul>
+	 * <li>We construct an instance of GetFilterPositionCommand, and run it, to get filter position data from the filter wheel Flask API.
+	 * <li>If the command run fails, we update commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL] to FAIL, and log the error, and return.
+	 * <li>If the command run succeeds, we set the "Filter Wheel:1" hashTable entry to the filter name returned, 
+	 *     and set the "Filter Wheel Position:1" hashtable entry to the filter wheel position returned.
+	 * <li>We construct an instance of GetStatusCommand, and run it, to get filter wheel connection data from the filter wheel Flask API.
+	 * <li>If the command run fails, we update commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL] to FAIL, and log the error, and return.
+	 * <li>If the command run succeeds, we set the "Filter Wheel Connection Status:1" hashTable entry to the filter wheel connection status.
+	 * <li>We update the commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL] to OK, to say we can communicate with the filter wheel.
+	 * </ul>
+	 * @see #filterWheelFlaskHostname
+	 * @see #filterWheelFlaskPortNumber
 	 * @see #hashTable
 	 * @see #COMMS_INSTRUMENT_STATUS_FILTER_WHEEL
 	 * @see #commsInstrumentStatus
+	 * @see ngat.loci.filterwheel.GetFilterPositionCommand
+	 * @see ngat.loci.filterwheel.GetFilterPositionCommand#getFilterName
+	 * @see ngat.loci.filterwheel.GetFilterPositionCommand#getFilterPosition
+	 * @see ngat.loci.filterwheel.GetStatusCommand
+	 * @see ngat.loci.filterwheel.GetStatusCommand#getConnectionStatus
 	 * @see ngat.message.ISS_INST.GET_STATUS_DONE#VALUE_STATUS_OK
 	 * @see ngat.message.ISS_INST.GET_STATUS_DONE#VALUE_STATUS_FAIL
 	 */
@@ -248,7 +265,6 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 		GetFilterPositionCommand filterPositionCommand = null;
 		GetStatusCommand getStatusCommand = null;
 		Exception returnException = null;
-		String errorString = null;
 		String filterName = null;
 		String filterWheelConnectionStatus = null;
 		int returnCode,filterWheelPosition;
@@ -270,14 +286,16 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 			hashTable.put("Filter Wheel.Comms.Status",
 				      commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL]);
 			returnCode = filterPositionCommand.getHttpResponseCode();
-			errorString = filterPositionCommand.getReturnStatus();
 			returnException = filterPositionCommand.getRunException();
 			loci.log(Logging.VERBOSITY_TERSE,
 				 "getFilterWheelStatus:get filter position command failed with return code "+
-				 returnCode+" error string:"+errorString+" run exception:"+returnException);
-			throw new Exception(this.getClass().getName()+
-					    ":getFilterWheelStatus:get filter position command failed with return code "+
-					    returnCode+" and error string:"+errorString,returnException);
+				 returnCode+" run exception:"+returnException);
+			loci.error("getFilterWheelStatus:get filter position command failed with return code "+
+				   returnCode+" run exception:"+returnException,returnException);
+			return;
+			//throw new Exception(this.getClass().getName()+
+			//		    ":getFilterWheelStatus:get filter position command failed with return code "+
+			//		    returnCode,returnException);
 		}
 		// retrieve returned data and put it in the hashtable
 		filterName = filterPositionCommand.getFilterName();
@@ -301,14 +319,16 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 			hashTable.put("Filter Wheel.Comms.Status",
 				      commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL]);
 			returnCode = getStatusCommand.getHttpResponseCode();
-			errorString = getStatusCommand.getReturnStatus();
 			returnException = getStatusCommand.getRunException();
 			loci.log(Logging.VERBOSITY_TERSE,
 				 "getFilterWheelStatus:get filter wheel status command failed with return code "+
-				 returnCode+" error string:"+errorString+" run exception:"+returnException);
-			throw new Exception(this.getClass().getName()+
-					    ":getFilterWheelStatus:get filter wheel status command failed with return code "+
-					    returnCode+" and error string:"+errorString,returnException);
+				 returnCode+" run exception:"+returnException);
+			loci.error("getFilterWheelStatus:get filter position command failed with return code "+
+				   returnCode+" run exception:"+returnException,returnException);
+			return;
+			//throw new Exception(this.getClass().getName()+
+			//		    ":getFilterWheelStatus:get filter wheel status command failed with return code "+
+			//		    returnCode,returnException);
 		}
 		// retrieve returned data and put it in the hashtable
 		filterWheelConnectionStatus = getStatusCommand.getConnectionStatus();
@@ -344,7 +364,6 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 		GetCameraStatusCommand statusCommand = null;
 		Exception returnException = null;
 		int returnCode;
-		String errorString = null;
 		String cameraStatus;
 		
 		// initialise currentMode to IDLE
@@ -361,14 +380,12 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 		if(statusCommand.isReturnStatusSuccess() == false)
 		{
 			returnCode = statusCommand.getHttpResponseCode();
-			errorString = statusCommand.getReturnStatus();
 			returnException = statusCommand.getRunException();
 			loci.log(Logging.VERBOSITY_TERSE,
 				 "getExposureStatus:exposure status command failed with return code "+
-				 returnCode+" error string:"+errorString+" run exception:"+returnException);
+				 returnCode+" run exception:"+returnException);
 			throw new Exception(this.getClass().getName()+
-					    ":getExposureStatus:exposure status command failed with return code "+
-					    returnCode+" and error string:"+errorString,returnException);
+					    ":getExposureStatus:exposure status command failed with return code "+returnCode,returnException);
 		}
 		cameraStatus = statusCommand.getCameraStatus();
 		hashTable.put("Camera Status",new String(cameraStatus));
@@ -402,7 +419,6 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 		GetExposureProgressCommand statusCommand = null;
 		Exception returnException = null;
 		int returnCode;
-		String errorString = null;
 		double elapsedExposureLengthS,exposureLengthS,remainingExposureLengthS;
 		int elapsedExposureLengthMs,exposureLengthMs,remainingExposureLengthMs;
 		
@@ -435,14 +451,12 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 				// This command can fail if the camera is not currently DRV_ACQURIING, so
 				// just log the error on failure.
 				returnCode = statusCommand.getHttpResponseCode();
-				errorString = statusCommand.getReturnStatus();
 				returnException = statusCommand.getRunException();
 				loci.log(Logging.VERBOSITY_TERSE,
-					 "getExposureProgress:command failed with return code "+
-					 returnCode+" error string:"+errorString+" run exception:"+returnException);
+					 "getExposureProgress:command failed with return code "+returnCode+" run exception:"+returnException);
 				//throw new Exception(this.getClass().getName()+
 				//		    ":getExposureProgress:command failed with return code "+
-				//		    returnCode+" and error string:"+errorString,returnException);
+				//		    returnCode,returnException);
 			}
 		}
 		else
@@ -537,7 +551,6 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 		String coolingStatus = null;
 		Exception returnException = null;
 		int returnCode;
-		String errorString = null;
 		double temperature;
 		Date timestamp;
 		boolean coolingEnabled;
@@ -553,14 +566,11 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 		if(statusCommand.isReturnStatusSuccess() == false)
 		{
 			returnCode = statusCommand.getHttpResponseCode();
-			errorString = statusCommand.getReturnStatus();
 			returnException = statusCommand.getRunException();
 			loci.log(Logging.VERBOSITY_TERSE,
-				 "getTemperature:get temperature command failed with return code "+
-				 returnCode+" error string:"+errorString+" run exception:"+returnException);
+				 "getTemperature:get temperature command failed with return code "+returnCode+" run exception:"+returnException);
 			throw new Exception(this.getClass().getName()+
-					    ":getTemperature:get temperature command failed with return code "+
-					    returnCode+" and error string:"+errorString,returnException);
+					    ":getTemperature:get temperature command failed with return code "+returnCode,returnException);
 		}
 		temperature = statusCommand.getTemperature();
 		coolingEnabled = statusCommand.getCoolingEnabled();
