@@ -17,6 +17,7 @@ import ngat.util.logging.*;
  * interface routines needed by many command implementations. It hold connection data for the various Flask
  * end-points that can be used by sub-class implementations.
  * @version $Revision: HardwareImplementation.java $
+ * @see ngat.loci.CommandImplementation
  */
 public class HardwareImplementation extends CommandImplementation implements JMSCommandImplementation
 {
