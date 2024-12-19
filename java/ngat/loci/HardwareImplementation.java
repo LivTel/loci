@@ -14,7 +14,8 @@ import ngat.util.logging.*;
 
 /**
  * This class provides some common hardware related routines to move folds, and FITS
- * interface routines needed by many command implementations
+ * interface routines needed by many command implementations. It hold connection data for the various Flask
+ * end-points that can be used by sub-class implementations.
  * @version $Revision: HardwareImplementation.java $
  */
 public class HardwareImplementation extends CommandImplementation implements JMSCommandImplementation
@@ -31,7 +32,15 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	 * The port number the loci-ctrl CCD Flask end-point is located on.
 	 */
 	protected int ccdFlaskPortNumber;
-
+	/**
+	 * The host the loci-ctrl filter wheel Flask end-point is located on.
+	 */
+	protected String filterWheelFlaskHostname = null;
+	/**
+	 * The port number the loci-ctrl filter wheel Flask end-point is located on.
+	 */
+	protected int filterWheelFlaskPortNumber;
+	
 	/**
 	 * This method calls the super-classes method. 
 	 * @param command The command to be implemented.
@@ -555,6 +564,24 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	{
 		ccdFlaskHostname = status.getProperty("loci.flask.ccd.hostname");
 		ccdFlaskPortNumber = status.getPropertyInteger("loci.flask.ccd.port_number");		
+	}
+	
+	/**
+	 * Retrieve the loci-ctrl filter wheel Flask end-point conenction data.
+	 * <ul>
+	 * <li>Retrieve the loci-ctrl filter wheel Flask end-point hostname from the property 
+	 *     'loci.flask.filterwheel.hostname.
+	 * <li>Retrieve the loci-ctrl filter wheel Flask end-point port number from the property 
+	 *     'loci.flask.filterwheel.port_number'.
+	 * </ul>
+	 * @see #status
+	 * @see #filterWheelFlaskHostname
+	 * @see #filterWheelFlaskPortNumber
+	 */
+	protected void getFilterWheelFlaskConnectionData()
+	{
+		filterWheelFlaskHostname = status.getProperty("loci.flask.filterwheel.hostname");
+		filterWheelFlaskPortNumber = status.getPropertyInteger("loci.flask.filterwheel.port_number");	
 	}
 	
 	/**
