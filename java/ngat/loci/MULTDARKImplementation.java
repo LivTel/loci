@@ -80,7 +80,8 @@ public class MULTDARKImplementation extends CALIBRATEImplementation implements J
 	 * <li>We initialise the status objects exposure status (setExposureCount / setExposureNumber).
 	 * <li>It moves the fold mirror to the correct location.
 	 * <li>clearFitsHeaders is called.
-	 * <li>setFitsHeaders is called to get some FITS headers from the properties files and add them to the C layers.
+	 * <li>setFitsHeaders is called to get some FITS headers from the properties files and add them to the CCD Flask API.
+	 * <li>setFilterWheelFitsHeaders is called to get the current filter wheel position, and set some FITS headers based on this.
 	 * <li>For each exposure it performs the following:
 	 *	<ul>
 	 *      <li>We call setPerFrameFitsHeaders to set the per-frame FITS headers.
@@ -100,6 +101,7 @@ public class MULTDARKImplementation extends CALIBRATEImplementation implements J
 	 * @see ngat.loci.CommandImplementation#testAbort
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
+	 * @see ngat.loci.HardwareImplementation#setFilterWheelFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#getFitsHeadersFromISS
 	 * @see ngat.loci.HardwareImplementation#setPerFrameFitsHeaders
 	 */
@@ -137,6 +139,8 @@ public class MULTDARKImplementation extends CALIBRATEImplementation implements J
 			return multDarkDone;
 		}			
 		if(setFitsHeaders(multDarkCommand,multDarkDone) == false)
+			return multDarkDone;
+		if(setFilterWheelFitsHeaders(multDarkCommand,multDarkDone) == false)
 			return multDarkDone;
 	// do darks
 		index = 0;
