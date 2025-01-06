@@ -295,6 +295,13 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 
 	/**
 	 * Get the current filter wheel position, and set some FITS headers accordingly.
+	 * <ul>
+	 * <li>We call getFilterWheelFlaskConnectionData to get the filter wheel Flask API connection data.
+	 * <li>We create an call an instance of GetFilterPositionCommand to get the filter name from the filter wheel Flask API.
+	 * <li>We call addFitsHeader to create the "FILTER1" keyword with the filter name as a value.
+	 * <li>We call LociStatus's getFilterIdName to get the filter id for that filter type name.
+	 * <li>We call addFitsHeader to create the "FILTERI1" keyword with the filter id name as a value.
+	 * </ul>
 	 * @param command The command being implemented that made this call to the ISS. This is used
 	 * 	for error logging.
 	 * @param commandDone A COMMAND_DONE subclass specific to the command being implemented. If an
@@ -304,7 +311,9 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	 * @see #filterWheelFlaskHostname
 	 * @see #filterWheelFlaskPortNumber
 	 * @see #addFitsHeader
+	 * @see #status
 	 * @see #getFilterWheelFlaskConnectionData
+	 * @see ngat.loci.LociStatus#getFilterIdName
 	 * @see ngat.loci.filterwheel.GetFilterPositionCommand
 	 */
 	public boolean setFilterWheelFitsHeaders(COMMAND command,COMMAND_DONE commandDone)
@@ -312,6 +321,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 		GetFilterPositionCommand filterPositionCommand = null;
 		Exception returnException = null;
 		String filterName = null;
+		String filterId = null;
 		int returnCode;
 		
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
@@ -359,7 +369,26 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 			return false;
 		}
 		// set headers based on name
-		
+		try
+		{
+			// FILTER1
+			addFitsHeader("FILTER1",filterName,"The filter wheel filter type.",null);
+			// FILTERI1
+			filterId = status.getFilterIdName(filterName);
+			loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+
+				 ":setFilterWheelFitsHeaders:Current filter Id is:"+filterId);
+			addFitsHeader("FILTER1",filterId,"The filter wheel filter id.",null);
+		}
+		catch(Exception e)
+		{
+			loci.error(this.getClass().getName()+
+				   ":setFilterWheelFitsHeaders:Failed to set FILTER FITS headers:",e);
+			commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1211);
+			commandDone.setErrorString(this.getClass().getName()+
+						   ":setFilterWheelFitsHeaders:Failed to set FILTER FITS headers:"+e);
+			commandDone.setSuccessful(false);
+			return false;
+		}	
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			 ":setFilterWheelFitsHeaders:Finished.");
 		return true;
