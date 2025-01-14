@@ -456,7 +456,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 * @see ngat.loci.Loci#CENTIGRADE_TO_KELVIN
 	 * @see ngat.loci.ccd.GetTemperatureCommand
 	 * @see ngat.loci.ccd.GetTemperatureCommand#getTemperature
-	 * @see ngat.loci.ccd.GetTemperatureCommand#getCoolingEnabled
+	 * @see ngat.loci.ccd.GetTemperatureCommand#getCoolerEnabled
 	 * @see ngat.loci.ccd.GetTemperatureCommand#getCoolingStatus
 	 */
 	protected void getTemperature() throws Exception
@@ -468,7 +468,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 		String errorString = null;
 		double temperature;
 		Date timestamp;
-		boolean coolingEnabled;
+		boolean coolerEnabled;
 		
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getTemperature:started for CCD Flask API ("+
 			   ccdFlaskHostname+":"+ccdFlaskPortNumber+") end-point.");
@@ -491,14 +491,14 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 					    returnCode+" and error string:"+errorString,returnException);
 		}
 		temperature = statusCommand.getTemperature();
-		coolingEnabled = statusCommand.getCoolingEnabled();
+		coolerEnabled = statusCommand.getCoolerEnabled();
 		coolingStatus = statusCommand.getCoolingStatus();
 		hashTable.put("Temperature",new Double(temperature+Loci.CENTIGRADE_TO_KELVIN));
-		hashTable.put("Cooling Enabled",new Boolean(coolingEnabled));
+		hashTable.put("Cooler Enabled",new Boolean(coolerEnabled));
 		hashTable.put("Cooling Status",new String(coolingStatus));
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getTemperature:finished for CCD Flask API ("+
 			   ccdFlaskHostname+":"+ccdFlaskPortNumber+") with temperature:"+temperature+
-			   " with cooling status "+coolingStatus+" and cooling enabled:"+coolingEnabled);
+			   " with cooling status "+coolingStatus+" and cooler enabled:"+coolerEnabled);
 		setDetectorTemperatureInstrumentStatus(temperature);
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getTemperature:finished.");
 	}

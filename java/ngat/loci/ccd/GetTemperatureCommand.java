@@ -63,22 +63,22 @@ public class GetTemperatureCommand extends Command implements Runnable
 	 * @exception JSONException Thrown if the key is not found or if the value is not an integer.
 	 * @exception IllegalArgumentException Thrown if the 'cooling_enabled' value is not a valid integer (either 0 or 1).
 	 */
-	public boolean getCoolingEnabled() throws org.json.JSONException, IllegalArgumentException
+	public boolean getCoolerEnabled() throws org.json.JSONException, IllegalArgumentException
 	{
-		boolean coolingEnabled;
-		int coolingEnabledInt;
+		boolean coolerEnabled;
+		int coolerEnabledInt;
 
-		coolingEnabledInt = endPoint.getReturnValueInteger("cooling_enabled");
-		if(coolingEnabledInt == 0)
-			coolingEnabled = false;
-		else if(coolingEnabledInt == 1)
-			coolingEnabled = true;
+		coolerEnabledInt = endPoint.getReturnValueInteger("cooler_enabled");
+		if(coolerEnabledInt == 0)
+			coolerEnabled = false;
+		else if(coolerEnabledInt == 1)
+			coolerEnabled = true;
 		else
 		{
 			throw new IllegalArgumentException(this.getClass().getName()+
-							   ":getCoolingEnabled:cooling_enabled returned illegal integer:"+coolingEnabledInt);
+				      ":getCoolerEnabled:cooler_enabled returned illegal integer:"+coolerEnabledInt);
 		}
-		return coolingEnabled;
+		return coolerEnabled;
 	}
 	
 	/**
@@ -128,7 +128,7 @@ public class GetTemperatureCommand extends Command implements Runnable
 			System.out.println("Return Status:"+command.getReturnStatus());
 			System.out.println("Is Return Status Success:"+command.isReturnStatusSuccess());
 			System.out.println("Temperature:"+command.getTemperature());
-			System.out.println("Cooling enabled:"+command.getCoolingEnabled());
+			System.out.println("Cooling enabled:"+command.getCoolerEnabled());
 			System.out.println("Cooling status:"+command.getCoolingStatus());
 		}
 		catch(Exception e)
