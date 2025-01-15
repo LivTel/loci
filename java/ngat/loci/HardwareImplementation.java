@@ -10,12 +10,15 @@ import ngat.fits.*;
 import ngat.message.base.*;
 import ngat.message.ISS_INST.*;
 import ngat.loci.ccd.*;
+import ngat.loci.filterwheel.*;
 import ngat.util.logging.*;
 
 /**
  * This class provides some common hardware related routines to move folds, and FITS
- * interface routines needed by many command implementations
+ * interface routines needed by many command implementations. It hold connection data for the various Flask
+ * end-points that can be used by sub-class implementations.
  * @version $Revision: HardwareImplementation.java $
+ * @see ngat.loci.CommandImplementation
  */
 public class HardwareImplementation extends CommandImplementation implements JMSCommandImplementation
 {
@@ -31,7 +34,15 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	 * The port number the loci-ctrl CCD Flask end-point is located on.
 	 */
 	protected int ccdFlaskPortNumber;
-
+	/**
+	 * The host the loci-ctrl filter wheel Flask end-point is located on.
+	 */
+	protected String filterWheelFlaskHostname = null;
+	/**
+	 * The port number the loci-ctrl filter wheel Flask end-point is located on.
+	 */
+	protected int filterWheelFlaskPortNumber;
+	
 	/**
 	 * This method calls the super-classes method. 
 	 * @param command The command to be implemented.
@@ -282,6 +293,107 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 		return true;
 	}
 
+	/**
+	 * Get the current filter wheel position, and set some FITS headers accordingly.
+	 * <ul>
+	 * <li>We call getFilterWheelFlaskConnectionData to get the filter wheel Flask API connection data.
+	 * <li>We create an call an instance of GetFilterPositionCommand to get the filter name from the filter wheel Flask API.
+	 * <li>We call addFitsHeader to create the "FILTER1" keyword with the filter name as a value.
+	 * <li>We call LociStatus's getFilterIdName to get the filter id for that filter type name.
+	 * <li>We call addFitsHeader to create the "FILTERI1" keyword with the filter id name as a value.
+	 * </ul>
+	 * @param command The command being implemented that made this call to the ISS. This is used
+	 * 	for error logging.
+	 * @param commandDone A COMMAND_DONE subclass specific to the command being implemented. If an
+	 * 	error occurs the relevant fields are filled in with the error.
+	 * @return The routine returns a boolean to indicate whether the operation was completed
+	 *  	successfully.
+	 * @see #filterWheelFlaskHostname
+	 * @see #filterWheelFlaskPortNumber
+	 * @see #addFitsHeader
+	 * @see #status
+	 * @see #getFilterWheelFlaskConnectionData
+	 * @see ngat.loci.LociStatus#getFilterIdName
+	 * @see ngat.loci.filterwheel.GetFilterPositionCommand
+	 */
+	public boolean setFilterWheelFitsHeaders(COMMAND command,COMMAND_DONE commandDone)
+	{
+		GetFilterPositionCommand filterPositionCommand = null;
+		Exception returnException = null;
+		String filterName = null;
+		String filterId = null;
+		int returnCode;
+		
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
+			 ":setFilterWheelFitsHeaders:Started.");
+		try
+		{
+			// get Flask API parameters
+			getFilterWheelFlaskConnectionData();
+			filterPositionCommand = new GetFilterPositionCommand();
+			filterPositionCommand.setAddress(filterWheelFlaskHostname);
+			filterPositionCommand.setPortNumber(filterWheelFlaskPortNumber);
+			// actually send the command to the filter wheel Flask API
+			filterPositionCommand.run();
+			// check the parsed reply
+			if(filterPositionCommand.isReturnStatusSuccess() == false)
+			{
+				returnCode = filterPositionCommand.getHttpResponseCode();
+				returnException = filterPositionCommand.getRunException();
+				loci.log(Logging.VERBOSITY_TERSE,this.getClass().getName()+
+					 ":setFilterWheelFitsHeaders:get filter position command failed with return code "+
+					 returnCode+" run exception:"+returnException);
+				loci.error(this.getClass().getName()+
+					   ":setFilterWheelFitsHeaders:get filter position command failed with return code "+
+					   returnCode+" run exception:"+returnException,returnException);
+				commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1209);
+				commandDone.setErrorString(this.getClass().getName()+
+							   ":setFilterWheelFitsHeaders:get filter position command failed with return code "+
+							   returnCode+" run exception:"+returnException);
+				commandDone.setSuccessful(false);
+				return false;
+			}
+			// get the current filter name
+			filterName = filterPositionCommand.getFilterName();
+			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
+				 ":setFilterWheelFitsHeaders:Current filter name is:"+filterName);
+		}
+		catch(Exception e)
+		{
+			loci.error(this.getClass().getName()+
+				   ":setFilterWheelFitsHeaders:get filter position command failed:",e);
+			commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1210);
+			commandDone.setErrorString(this.getClass().getName()+
+						   ":setFilterWheelFitsHeaders:get filter position command failed:"+e);
+			commandDone.setSuccessful(false);
+			return false;
+		}
+		// set headers based on name
+		try
+		{
+			// FILTER1
+			addFitsHeader("FILTER1",filterName,"The filter wheel filter type.",null);
+			// FILTERI1
+			filterId = status.getFilterIdName(filterName);
+			loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+
+				 ":setFilterWheelFitsHeaders:Current filter Id is:"+filterId);
+			addFitsHeader("FILTER1",filterId,"The filter wheel filter id.",null);
+		}
+		catch(Exception e)
+		{
+			loci.error(this.getClass().getName()+
+				   ":setFilterWheelFitsHeaders:Failed to set FILTER FITS headers:",e);
+			commandDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1211);
+			commandDone.setErrorString(this.getClass().getName()+
+						   ":setFilterWheelFitsHeaders:Failed to set FILTER FITS headers:"+e);
+			commandDone.setSuccessful(false);
+			return false;
+		}	
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
+			 ":setFilterWheelFitsHeaders:Finished.");
+		return true;
+	}
+	
 	/**
 	 * Set some dynamically generate (per-frame) FITS headers.
 	 * @param command The command being implemented that made this call to the ISS. This is used
@@ -555,6 +667,24 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	{
 		ccdFlaskHostname = status.getProperty("loci.flask.ccd.hostname");
 		ccdFlaskPortNumber = status.getPropertyInteger("loci.flask.ccd.port_number");		
+	}
+	
+	/**
+	 * Retrieve the loci-ctrl filter wheel Flask end-point conenction data.
+	 * <ul>
+	 * <li>Retrieve the loci-ctrl filter wheel Flask end-point hostname from the property 
+	 *     'loci.flask.filterwheel.hostname.
+	 * <li>Retrieve the loci-ctrl filter wheel Flask end-point port number from the property 
+	 *     'loci.flask.filterwheel.port_number'.
+	 * </ul>
+	 * @see #status
+	 * @see #filterWheelFlaskHostname
+	 * @see #filterWheelFlaskPortNumber
+	 */
+	protected void getFilterWheelFlaskConnectionData()
+	{
+		filterWheelFlaskHostname = status.getProperty("loci.flask.filterwheel.hostname");
+		filterWheelFlaskPortNumber = status.getPropertyInteger("loci.flask.filterwheel.port_number");	
 	}
 	
 	/**

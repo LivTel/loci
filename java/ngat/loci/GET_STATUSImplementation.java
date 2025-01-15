@@ -7,6 +7,7 @@ import java.text.*;
 import java.util.*;
 
 import ngat.loci.ccd.*;
+import ngat.loci.filterwheel.*;
 import ngat.message.base.*;
 import ngat.message.base.*;
 import ngat.message.ISS_INST.*;
@@ -18,8 +19,9 @@ import ngat.util.ExecuteCommand;
  * Java Message System.
  * @author Chris Mottram
  * @version $Revision$
+ * @see ngat.loci.HardwareImplementation
  */
-public class GET_STATUSImplementation extends CommandImplementation implements JMSCommandImplementation
+public class GET_STATUSImplementation extends HardwareImplementation implements JMSCommandImplementation
 {
 	/**
 	 * Revision Control System id string, showing the version of the Class.
@@ -70,14 +72,6 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 * @see ngat.message.ISS_INST.GET_STATUS_DONE#MODE_ERROR
 	 */
 	protected int currentMode;
-	/**
-	 * The CCD Flask API's hostname.
-	 */
-	protected String ccdFlaskHostname = null;
-	/**
-	 * The CCD Flask API's port number.
-	 */	
-	protected int ccdFlaskPortNumber = 0;
 	
 	/**
 	 * Constructor.
@@ -118,13 +112,15 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 * This method implements the GET_STATUS command. 
 	 * The local hashTable is setup (returned in the done object) and a local copy of status setup.
 	 * <ul>
-	 * <li>getFlaskCCDConfig is called to get the CCD Flask API end-point address/port number.
+	 * <li>getCCDFlaskConnectionData is called to get the CCD Flask API end-point address/port number.
+	 * <li>getFilterWheelFlaskConnectionData is called to get the filter wheel Flask API end-point address/port number.
 	 * <li>getExposureStatus is called to get the exposure status into the exposureStatus and exposureStatusString
 	 *     variables.
 	 * <li>"Exposure Status" and "Exposure Status String" status properties are added to the hashtable.
 	 * <li>The "Instrument" status property is set to the "loci.get_status.instrument_name" property value.
 	 * <li>The detectorTemperatureInstrumentStatus is initialised.
 	 * <li>The "currentCommand" status hashtable value is set to the currently executing command.
+	 * <li>getFilterWheelStatus is called to add some filter wheel status to the hashtable.
 	 * <li>We set "Exposure Count" to the currently executing command's expected exposure count stored in
 	 *     the LociStatus instance LociStatus.getExposureCount().
 	 * <li>We set "Exposure Number" to the currently executing command's current exposure index stored in
@@ -141,12 +137,13 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	 * @see #hashTable
 	 * @see #detectorTemperatureInstrumentStatus
 	 * @see #commsInstrumentStatus
-	 * @see #getFlaskCCDConfig
+	 * @see #getFilterWheelStatus
 	 * @see #getExposureStatus
 	 * @see #getExposureProgress
 	 * @see #getIntermediateStatus
 	 * @see #getFullStatus
 	 * @see #currentMode
+	 * @see HardwareImplementation#getCCDFlaskConnectionData
 	 * @see LociStatus#getProperty
 	 * @see LociStatus#getExposureCount
 	 * @see LociStatus#getExposureNumber
@@ -166,7 +163,9 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 			// v1.5 generic typing of collections:<String, Object>, can't be used due to v1.4 compatibility
 			hashTable = new Hashtable();
 			// get CCD Flask API comms configuration
-			getFlaskCCDConfig();
+			getCCDFlaskConnectionData();
+			// get filter wheel Flask API comms configuration
+			getFilterWheelFlaskConnectionData();
 			// exposure status
 			// Also sets currentMode
 			getExposureStatus(); 
@@ -190,7 +189,7 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 			else
 				hashTable.put("currentCommand",currentCommand.getClass().getName());
 			// basic information
-			//getFilterWheelStatus();
+			getFilterWheelStatus();
 			// "Exposure Count" is searched for by the IcsGUI
 			hashTable.put("Exposure Count",new Integer(status.getExposureCount()));
 			// "Exposure Number" is searched for by the IcsGUI
@@ -237,18 +236,111 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 	}
 
 	/**
-	 * Get the CCD Flask API hostname and port number from the properties into some internal variables. 
-	 * @exception Exception Thrown if the relevant property cannot be retrieved.
-	 * @see #status
-	 * @see #ccdFlaskHostname
-	 * @see #ccdFlaskPortNumber
-	 * @see LociStatus#getProperty
-	 * @see LociStatus#getPropertyInteger
+	 * Get the status of the filter wheel.
+	 * <ul>
+	 * <li>We construct an instance of GetFilterPositionCommand, and run it, to get filter position data from the filter wheel Flask API.
+	 * <li>If the command run fails, we update commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL] to FAIL, and log the error, and return.
+	 * <li>If the command run succeeds, we set the "Filter Wheel:1" hashTable entry to the filter name returned, 
+	 *     and set the "Filter Wheel Position:1" hashtable entry to the filter wheel position returned.
+	 * <li>We construct an instance of GetStatusCommand, and run it, to get filter wheel connection data from the filter wheel Flask API.
+	 * <li>If the command run fails, we update commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL] to FAIL, and log the error, and return.
+	 * <li>If the command run succeeds, we set the "Filter Wheel Connection Status:1" hashTable entry to the filter wheel connection status.
+	 * <li>We update the commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL] to OK, to say we can communicate with the filter wheel.
+	 * </ul>
+	 * @see #filterWheelFlaskHostname
+	 * @see #filterWheelFlaskPortNumber
+	 * @see #hashTable
+	 * @see #COMMS_INSTRUMENT_STATUS_FILTER_WHEEL
+	 * @see #commsInstrumentStatus
+	 * @see ngat.loci.filterwheel.GetFilterPositionCommand
+	 * @see ngat.loci.filterwheel.GetFilterPositionCommand#getFilterName
+	 * @see ngat.loci.filterwheel.GetFilterPositionCommand#getFilterPosition
+	 * @see ngat.loci.filterwheel.GetStatusCommand
+	 * @see ngat.loci.filterwheel.GetStatusCommand#getConnectionStatus
+	 * @see ngat.message.ISS_INST.GET_STATUS_DONE#VALUE_STATUS_OK
+	 * @see ngat.message.ISS_INST.GET_STATUS_DONE#VALUE_STATUS_FAIL
 	 */
-	protected void getFlaskCCDConfig() throws Exception
+	protected void getFilterWheelStatus() throws Exception
 	{
-		ccdFlaskHostname = status.getProperty("loci.flask.ccd.hostname");
-		ccdFlaskPortNumber = status.getPropertyInteger("loci.flask.ccd.port_number");
+		GetFilterPositionCommand filterPositionCommand = null;
+		GetStatusCommand getStatusCommand = null;
+		Exception returnException = null;
+		String filterName = null;
+		String filterWheelConnectionStatus = null;
+		int returnCode,filterWheelPosition;
+
+		// Setup GetFilterPositionCommand
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getFilterWheelStatus:started for filter wheel Flask API :Hostname: "+
+			 filterWheelFlaskHostname+" Port Number: "+filterWheelFlaskPortNumber+".");
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getFilterWheelStatus:Send GetFilterPositionCommand command to Flask API.");
+		filterPositionCommand = new GetFilterPositionCommand();
+		filterPositionCommand.setAddress(filterWheelFlaskHostname);
+		filterPositionCommand.setPortNumber(filterWheelFlaskPortNumber);
+		// actually send the command to the filter wheel Flask API
+		filterPositionCommand.run();
+		// check the parsed reply
+		if(filterPositionCommand.isReturnStatusSuccess() == false)
+		{
+			commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL] = GET_STATUS_DONE.
+				VALUE_STATUS_FAIL;
+			hashTable.put("Filter Wheel.Comms.Status",
+				      commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL]);
+			returnCode = filterPositionCommand.getHttpResponseCode();
+			returnException = filterPositionCommand.getRunException();
+			loci.log(Logging.VERBOSITY_TERSE,
+				 "getFilterWheelStatus:get filter position command failed with return code "+
+				 returnCode+" run exception:"+returnException);
+			loci.error("getFilterWheelStatus:get filter position command failed with return code "+
+				   returnCode+" run exception:"+returnException,returnException);
+			return;
+			//throw new Exception(this.getClass().getName()+
+			//		    ":getFilterWheelStatus:get filter position command failed with return code "+
+			//		    returnCode,returnException);
+		}
+		// retrieve returned data and put it in the hashtable
+		filterName = filterPositionCommand.getFilterName();
+		hashTable.put("Filter Wheel:1",new String(filterName));
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getFilterWheelStatus:filter wheel filter name:"+filterName);
+		filterWheelPosition = filterPositionCommand.getFilterPosition();
+		hashTable.put("Filter Wheel Position:1",new Integer(filterWheelPosition));
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getFilterWheelStatus:filter wheel position:"+filterWheelPosition);
+		// Setup GetStatusCommand
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getFilterWheelStatus:Send GetStatusCommand command to Flask API.");
+		getStatusCommand = new GetStatusCommand();
+		getStatusCommand.setAddress(filterWheelFlaskHostname);
+		getStatusCommand.setPortNumber(filterWheelFlaskPortNumber);
+		// actually send the command to the filter wheel Flask API
+		getStatusCommand.run();
+		// check the parsed reply
+		if(getStatusCommand.isReturnStatusSuccess() == false)
+		{
+			commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL] = GET_STATUS_DONE.
+				VALUE_STATUS_FAIL;
+			hashTable.put("Filter Wheel.Comms.Status",
+				      commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL]);
+			returnCode = getStatusCommand.getHttpResponseCode();
+			returnException = getStatusCommand.getRunException();
+			loci.log(Logging.VERBOSITY_TERSE,
+				 "getFilterWheelStatus:get filter wheel status command failed with return code "+
+				 returnCode+" run exception:"+returnException);
+			loci.error("getFilterWheelStatus:get filter position command failed with return code "+
+				   returnCode+" run exception:"+returnException,returnException);
+			return;
+			//throw new Exception(this.getClass().getName()+
+			//		    ":getFilterWheelStatus:get filter wheel status command failed with return code "+
+			//		    returnCode,returnException);
+		}
+		// retrieve returned data and put it in the hashtable
+		filterWheelConnectionStatus = getStatusCommand.getConnectionStatus();
+		hashTable.put("Filter Wheel Connection Status:1",new String(filterWheelConnectionStatus));
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getFilterWheelStatus:filter wheel connection status:"+
+			 filterWheelConnectionStatus);
+		// update filter wheel comms status to "OK"
+		commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL] = GET_STATUS_DONE.VALUE_STATUS_OK;
+		hashTable.put("Filter Wheel.Comms.Status",
+			      commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL]);
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"getFilterWheelStatus:finished.");
+		
 	}
 	
 	/**
@@ -272,7 +364,6 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 		GetCameraStatusCommand statusCommand = null;
 		Exception returnException = null;
 		int returnCode;
-		String errorString = null;
 		String cameraStatus;
 		
 		// initialise currentMode to IDLE
@@ -289,14 +380,12 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 		if(statusCommand.isReturnStatusSuccess() == false)
 		{
 			returnCode = statusCommand.getHttpResponseCode();
-			errorString = statusCommand.getReturnStatus();
 			returnException = statusCommand.getRunException();
 			loci.log(Logging.VERBOSITY_TERSE,
 				 "getExposureStatus:exposure status command failed with return code "+
-				 returnCode+" error string:"+errorString+" run exception:"+returnException);
+				 returnCode+" run exception:"+returnException);
 			throw new Exception(this.getClass().getName()+
-					    ":getExposureStatus:exposure status command failed with return code "+
-					    returnCode+" and error string:"+errorString,returnException);
+					    ":getExposureStatus:exposure status command failed with return code "+returnCode,returnException);
 		}
 		cameraStatus = statusCommand.getCameraStatus();
 		hashTable.put("Camera Status",new String(cameraStatus));
@@ -330,7 +419,6 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 		GetExposureProgressCommand statusCommand = null;
 		Exception returnException = null;
 		int returnCode;
-		String errorString = null;
 		double elapsedExposureLengthS,exposureLengthS,remainingExposureLengthS;
 		int elapsedExposureLengthMs,exposureLengthMs,remainingExposureLengthMs;
 		
@@ -363,14 +451,12 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 				// This command can fail if the camera is not currently DRV_ACQURIING, so
 				// just log the error on failure.
 				returnCode = statusCommand.getHttpResponseCode();
-				errorString = statusCommand.getReturnStatus();
 				returnException = statusCommand.getRunException();
 				loci.log(Logging.VERBOSITY_TERSE,
-					 "getExposureProgress:command failed with return code "+
-					 returnCode+" error string:"+errorString+" run exception:"+returnException);
+					 "getExposureProgress:command failed with return code "+returnCode+" run exception:"+returnException);
 				//throw new Exception(this.getClass().getName()+
 				//		    ":getExposureProgress:command failed with return code "+
-				//		    returnCode+" and error string:"+errorString,returnException);
+				//		    returnCode,returnException);
 			}
 		}
 		else
@@ -465,7 +551,6 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 		String coolingStatus = null;
 		Exception returnException = null;
 		int returnCode;
-		String errorString = null;
 		double temperature;
 		Date timestamp;
 		boolean coolingEnabled;
@@ -481,14 +566,11 @@ public class GET_STATUSImplementation extends CommandImplementation implements J
 		if(statusCommand.isReturnStatusSuccess() == false)
 		{
 			returnCode = statusCommand.getHttpResponseCode();
-			errorString = statusCommand.getReturnStatus();
 			returnException = statusCommand.getRunException();
 			loci.log(Logging.VERBOSITY_TERSE,
-				 "getTemperature:get temperature command failed with return code "+
-				 returnCode+" error string:"+errorString+" run exception:"+returnException);
+				 "getTemperature:get temperature command failed with return code "+returnCode+" run exception:"+returnException);
 			throw new Exception(this.getClass().getName()+
-					    ":getTemperature:get temperature command failed with return code "+
-					    returnCode+" and error string:"+errorString,returnException);
+					    ":getTemperature:get temperature command failed with return code "+returnCode,returnException);
 		}
 		temperature = statusCommand.getTemperature();
 		coolingEnabled = statusCommand.getCoolingEnabled();

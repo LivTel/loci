@@ -8,6 +8,7 @@ import java.text.*;
 import java.util.*;
 
 import ngat.loci.ccd.*;
+import ngat.loci.filterwheel.*;
 import ngat.message.base.*;
 import ngat.message.base.*;
 import ngat.message.ISS_INST.*;
@@ -84,6 +85,7 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 	 * <li>The command is casted.
 	 * <li>The DONE message is created.
 	 * <li>We test for command abort.
+	 * <li>We call sendSetFilterPositionByNameCommand to set the filter wheel to the position specified by the filter name.
 	 * <li>We call sendSetImageWindowCommand to set the detector binning and sub-window.
 	 * <li>We calculate the focus offset from "loci.focus.offset", and call setFocusOffset to tell the RCS/TCS
 	 *     the focus offset required.
@@ -92,6 +94,7 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 	 * <li>We save the coadd exposure length in the Loci status instance for future reference.
 	 * <li>We return success.
 	 * </ul>
+	 * @see #sendSetFilterPositionByNameCommand
 	 * @see #sendSetImageWindowCommand
 	 * @see #testAbort
 	 * @see #setFocusOffset
@@ -149,7 +152,7 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 			 "\n\t:Filter = "+config.getFilterName()+
 			 "\n\t:X Binning = "+config.getDetector(0).getXBin()+
 			 "\n\t:Y Binning = "+config.getDetector(0).getYBin()+".");
-		// TODO Print Window
+		// If the window is active, print window data out
 		if(config.getDetector(0).isActiveWindow(0))
 		{
 			Window window = config.getDetector(0).getWindow(0);
@@ -159,10 +162,10 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 				 "\n\t:subwindow = {xs="+window.getXs()+",ys="+window.getYs()+
 				 ",xe="+window.getXe()+",ye="+window.getYe()+"}");
 		}
-		// send config commands to C layers
+		// send config commands to Flask API layers
 		try
 		{
-			//sendConfigFilterCommand(config.getFilterName());
+			sendSetFilterPositionByNameCommand(config.getFilterName());
 			sendSetImageWindowCommand(config.getDetector(0));
 		}
 		catch(Exception e)
@@ -241,6 +244,58 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 	}
 
 	/**
+	 * Send a setFilterPositionByName filter wheel Flask API call to configure the filter wheel.
+	 * <ul>
+	 * <li>We get the filter wheel Flask API connection data by calling  getFilterWheelFlaskConnectionData.
+	 * <li>We construct and initialise a SetFilterPositionByNameCommand instance.
+	 * <li>We run the SetFilterPositionByNameCommand instance.
+	 * <li>We check whether the command threw an exception, or returned an error.
+	 * </ul>
+	 * @param filterName The name of the filter to move the filter wheel position to.
+	 * @see #getFilterWheelFlaskConnectionData
+	 * @see #filterWheelFlaskHostname
+	 * @see #filterWheelFlaskPortNumber
+	 * @see ngat.loci.filterwheel.SetFilterPositionByNameCommand
+	 * @exception UnknownHostException Thrown if the address passed to SetFilterPositionByNameCommand.setAddress is not a 
+	 *            valid host.
+	 * @exception Exception Thrown if the SetFilterPositionByNameCommand generates a run exception, or the return
+	 *            status is not success.
+	 */
+	protected void sendSetFilterPositionByNameCommand(String filterName)  throws UnknownHostException, Exception
+	{
+		SetFilterPositionByNameCommand command = null;
+
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendSetFilterPositionByNameCommand:started:moving to filter:"+filterName);
+		// get filter wheel Flask API connection data
+		getFilterWheelFlaskConnectionData();
+		// setup command
+		command = new SetFilterPositionByNameCommand();
+		command.setAddress(filterWheelFlaskHostname);
+		command.setPortNumber(filterWheelFlaskPortNumber);
+		// filter name
+		command.setFilterName(filterName);
+		// run command
+		command.run();
+		// check reply
+		if(command.getRunException() != null)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":sendSetFilterPositionByNameCommand:Failed:"+command.getRunException(),
+					    command.getRunException());
+		}
+		loci.log(Logging.VERBOSITY_VERBOSE,
+			 "sendSetFilterPositionByNameCommand:Set Filter Position By Name Command Finished with status: "+
+			 command.getReturnStatus()+" and message:"+command.getMessage()+".");
+		if(command.isReturnStatusSuccess() == false)
+		{
+			throw new Exception(this.getClass().getName()+
+					":sendSetFilterPositionByNameCommand:Set Filter Position By Name Command failed with status: "+
+					    command.getReturnStatus()+" and message:"+command.getMessage()+".");
+		}
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendSetFilterPositionByNameCommand:finished:moved to filter:"+filterName);
+	}
+
+	/**
 	 * Send a setImageWindow CCD Flask API call to configure the detector binning and sub-window.
 	 * <ul>
 	 * <li>We get the CCD Flask API connection data by calling  getCCDFlaskConnectionData.
@@ -292,7 +347,7 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 		if(command.getRunException() != null)
 		{
 			throw new Exception(this.getClass().getName()+
-					    ":sendSetImageWindowCommand:Failed:",
+					    ":sendSetImageWindowCommand:Failed:"+command.getRunException(),
 					    command.getRunException());
 		}
 		loci.log(Logging.VERBOSITY_VERBOSE,
