@@ -44,9 +44,9 @@ public class TakeBiasFrameCommand extends Command implements Runnable
 	}
 
 	/**
-	 * Set whether the bias frame to be acquired is the first one in a multrun or not.
+	 * Set whether the frame to be acquired is the first one in a multrun or not.
 	 * @param isMultrunStart A boolean, true if this frame is the first one to be acquired in the Multrun, and
-	 *        false if it is NOT the first framr in a multrun.
+	 *        false if it is NOT the first frame in a multrun.
 	 * @see #endPoint
 	 * @see ngat.flask.EndPoint#addParameter(java.lang.String,java.lang.String)
 	 */
