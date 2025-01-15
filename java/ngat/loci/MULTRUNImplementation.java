@@ -77,7 +77,7 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 	/**
 	 * This method implements the MULTRUN command. 
 	 * <ul>
-	 * <li>We intiialise the status objects exposure status (setExposureCount / setExposureNumber).
+	 * <li>We initialise the status objects exposure status (setExposureCount / setExposureNumber).
 	 * <li>It moves the fold mirror to the correct location.
 	 * <li>We determine the OBSTYPE from the standard flag.
 	 * <li>clearFitsHeaders is called.
@@ -117,6 +117,7 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 		MULTRUN_DONE multRunDone = new MULTRUN_DONE(command.getId());
 		String obsType = null;
 		String filename = null;
+		String exposureType = null;
 		int index;
 		List reduceFilenameList = null;
 		
@@ -133,10 +134,12 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 		if(multRunCommand.getStandard())
 		{
 			obsType = FitsHeaderDefaults.OBSTYPE_VALUE_STANDARD;
+			exposureType = new String("standard");
 		}
 		else
 		{
 			obsType = FitsHeaderDefaults.OBSTYPE_VALUE_EXPOSURE;
+			exposureType = new String("exposure");
 		}
 		// initial FITS headers setup
 		try
@@ -176,7 +179,8 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 				 ":processCommand:Starting sendTakeExposureCommand.");
 			try
 			{
-				filename = sendTakeExposureCommand(multRunCommand.getExposureTime());
+				filename = sendTakeExposureCommand(multRunCommand.getExposureTime(),
+								   (index == 0),exposureType);
 			}
 			catch(Exception e )
 			{
@@ -240,7 +244,7 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 	 * <ul>
 	 * <li>We call getCCDFlaskConnectionData to setup ccdFlaskHostname and ccdFlaskPortNumber.
 	 * <li>We setup and configure an instance of TakeExposureCommand, 
-	 *     with connection details and exposure length.
+	 *     with connection details, exposure length, is multrun start and exposure type.
 	 * <li>We run the instance of TakeExposureCommand.
 	 * <li>We check whether a run exception occured, and throw it as an exception if so.
 	 * <li>We log the return status and message.
@@ -249,6 +253,9 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 	 * <li>We return the generated exposure filename.
 	 * </ul>
 	 * @param exposureLength The dark exposure length in milliseconds.
+	 * @param isMultrunStart A boolean, true if this is the first frame in the multrun, false otherwise.
+	 * @param exposureType  A string representing the type of exposure, usually "exposure" for an exposure, and
+	 *        "standard" if the exposure is of a standard star.
 	 * @return The generated exposure FITS filename is returned as a String.
 	 * @see #getCCDFlaskConnectionData
 	 * @see #ccdFlaskHostname
@@ -259,7 +266,8 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 	 * @exception Exception Thrown if the TakeExposureCommand generates a run exception, or the return
 	 *            status is not success.
 	 */
-	protected String sendTakeExposureCommand(int exposureLength) throws UnknownHostException, Exception
+	protected String sendTakeExposureCommand(int exposureLength,boolean isMultrunStart,
+						 String exposureType) throws UnknownHostException, Exception
 	{
 		TakeExposureCommand takeExposureCommand = null;
 		String filename = null;
@@ -271,13 +279,16 @@ public class MULTRUNImplementation extends HardwareImplementation implements JMS
 		getCCDFlaskConnectionData();
 		// convert exposure length from milliseconds to decimal seconds
 		exposureLengthS = ((double)exposureLength)/((double)LociConstants.MILLISECONDS_PER_SECOND);
-		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeExposureCommand:Exposure length "+
-			 exposureLengthS+" seconds.");
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeExposureCommand:Exposure length: "+
+			 exposureLengthS+" seconds, isMultrunStart: "+isMultrunStart+
+			 ", exposure type: "+exposureType+".");
 		// setup TakeExposureCommand
 		takeExposureCommand = new TakeExposureCommand();
 		takeExposureCommand.setAddress(ccdFlaskHostname);
 		takeExposureCommand.setPortNumber(ccdFlaskPortNumber);
 		takeExposureCommand.setExposureLength(exposureLengthS);
+		takeExposureCommand.setMultrun(isMultrunStart);
+		takeExposureCommand.setExposureType(exposureType);
 		// run command
 		takeExposureCommand.run();
 		// check reply
