@@ -69,7 +69,7 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 *     returned a failure.
 	 * <li>We return the generated bias filename.
 	 * </ul>
-	 * @param isMultrunStart A boolean, set to true if this frame is start os a multrun, and false if it is not
+	 * @param isMultrunStart A boolean, set to true if this frame is start of a multrun, and false if it is not
 	 *        the start of a multrun.
 	 * @return The generated BIAS FITS filename is returned as a String.
 	 * @see #getCCDFlaskConnectionData
@@ -135,6 +135,8 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * <li>We return the generated dark filename.
 	 * </ul>
 	 * @param exposureLength The dark exposure length in milliseconds.
+	 * @param isMultrunStart A boolean, set to true if this frame is start of a multrun, and false if it is not
+	 *        the start of a multrun.
 	 * @return The generated DARK FITS filename is returned as a String.
 	 * @see #getCCDFlaskConnectionData
 	 * @see #ccdFlaskHostname
@@ -145,7 +147,7 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 	 * @exception Exception Thrown if the TakeDarkFrameCommand generates a run exception, or the return
 	 *            status is not success.
 	 */
-	protected String sendTakeDarkFrameCommand(int exposureLength) throws UnknownHostException, Exception
+	protected String sendTakeDarkFrameCommand(int exposureLength,boolean isMultrunStart) throws UnknownHostException, Exception
 	{
 		TakeDarkFrameCommand takeDarkFrameCommand = null;
 		String filename = null;
@@ -164,6 +166,7 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		takeDarkFrameCommand.setAddress(ccdFlaskHostname);
 		takeDarkFrameCommand.setPortNumber(ccdFlaskPortNumber);
 		takeDarkFrameCommand.setExposureLength(exposureLengthS);
+		takeDarkFrameCommand.setMultrun(isMultrunStart);
 		// run command
 		takeDarkFrameCommand.run();
 		// check reply

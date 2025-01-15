@@ -158,7 +158,7 @@ public class MULTDARKImplementation extends CALIBRATEImplementation implements J
 				 ":processCommand:Starting sendTakeDarkFrameCommand.");
 			try
 			{
-				filename = sendTakeDarkFrameCommand(multDarkCommand.getExposureTime());
+				filename = sendTakeDarkFrameCommand(multDarkCommand.getExposureTime(),(index == 0));
 			}
 			catch(Exception e )
 			{

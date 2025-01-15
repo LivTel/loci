@@ -136,7 +136,7 @@ public class DARKImplementation extends CALIBRATEImplementation implements JMSCo
 			   ":processCommand:Starting sendTakeDarkFrameCommand.");
 		try
 		{
-			filename = sendTakeDarkFrameCommand(darkCommand.getExposureTime());
+			filename = sendTakeDarkFrameCommand(darkCommand.getExposureTime(),true);
 		}
 		catch(Exception e )
 		{
