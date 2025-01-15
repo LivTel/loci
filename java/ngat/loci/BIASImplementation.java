@@ -135,10 +135,10 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 			 ":processCommand:Setting up FITS filename multrun.");
 		// call take bias frame command
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
-			   ":processCommand:Starting sendTakeBiasFrameCommand.");
+			   ":processCommand:Starting sendTakeBiasFrameCommand(isMultrunStart=true).");
 		try
 		{
-			filename = sendTakeBiasFrameCommand();
+			filename = sendTakeBiasFrameCommand(true);
 		}
 		catch(Exception e )
 		{

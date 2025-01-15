@@ -152,10 +152,12 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 				return multBiasDone;
 			// do bias
 			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
-				 ":processCommand:Starting sendTakeBiasFrameCommand.");
+				 ":processCommand:Starting sendTakeBiasFrameCommand(isMultrunStart="+
+				 (index == 0)+").");
 			try
 			{
-				filename = sendTakeBiasFrameCommand();
+				// start of multrun is frame index 0
+				filename = sendTakeBiasFrameCommand((index == 0));
 			}
 			catch(Exception e )
 			{
