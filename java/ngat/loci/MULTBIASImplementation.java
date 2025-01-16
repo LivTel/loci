@@ -78,7 +78,8 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 	 * <li>We initialise the status objects exposure status (setExposureCount / setExposureNumber).
 	 * <li>It moves the fold mirror to the correct location.
 	 * <li>clearFitsHeaders is called.
-	 * <li>setFitsHeaders is called to get some FITS headers from the properties files and add them to the C layers.
+	 * <li>setFitsHeaders is called to get some FITS headers from the properties files and add them to the CCD Flask API.
+	 * <li>setFilterWheelFitsHeaders is called to get the current filter wheel position, and set some FITS headers based on this.
 	 * <li>For each exposure it performs the following:
 	 *	<ul>
 	 *      <li>We call setPerFrameFitsHeaders to set the per-frame FITS headers.
@@ -98,6 +99,7 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 	 * @see ngat.loci.CommandImplementation#testAbort
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
+	 * @see ngat.loci.HardwareImplementation#setFilterWheelFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#getFitsHeadersFromISS
 	 * @see ngat.loci.HardwareImplementation#setPerFrameFitsHeaders
 	 */
@@ -136,6 +138,8 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 		}			
 		if(setFitsHeaders(multBiasCommand,multBiasDone) == false)
 			return multBiasDone;
+		if(setFilterWheelFitsHeaders(multBiasCommand,multBiasDone) == false)
+			return multBiasDone;
 	// do bias frames
 		index = 0;
 		reduceFilenameList = new Vector();
@@ -152,10 +156,12 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 				return multBiasDone;
 			// do bias
 			loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
-				 ":processCommand:Starting sendTakeBiasFrameCommand.");
+				 ":processCommand:Starting sendTakeBiasFrameCommand(isMultrunStart="+
+				 (index == 0)+").");
 			try
 			{
-				filename = sendTakeBiasFrameCommand();
+				// start of multrun is frame index 0
+				filename = sendTakeBiasFrameCommand((index == 0));
 			}
 			catch(Exception e )
 			{

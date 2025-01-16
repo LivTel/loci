@@ -76,7 +76,7 @@ public class GetTemperatureCommand extends Command implements Runnable
 		else
 		{
 			throw new IllegalArgumentException(this.getClass().getName()+
-							   ":getCoolingEnabled:cooling_enabled returned illegal integer:"+coolingEnabledInt);
+				      ":getCoolingEnabled:cooler_enabled returned illegal integer:"+coolingEnabledInt);
 		}
 		return coolingEnabled;
 	}

@@ -56,17 +56,33 @@ public class TakeExposureCommand extends Command implements Runnable
 	}
 	
 	/**
-	 * Set the filename passed to the Flask takeExposure end-point. This is the FITS filename to put the read out
-	 * image data into.
-	 * @param filename A string, the FITS filename.
+	 * Set whether the frame to be acquired is the first one in a multrun or not. This is an optional call
+	 * and defaults (at the server end) to "start" (i.e. start a new multrun).
+	 * @param isMultrunStart A boolean, true if this frame is the first one to be acquired in the Multrun, and
+	 *        false if it is NOT the first frame in a multrun.
 	 * @see #endPoint
 	 * @see ngat.flask.EndPoint#addParameter(java.lang.String,java.lang.String)
 	 */
-	//public void setFilename(String filename)
-	//{
-	//	endPoint.addParameter("filename",filename);
-	//}
-	
+	public void setMultrun(boolean isMultrunStart)
+	{
+		if(isMultrunStart)
+			endPoint.addParameter("multrun","start");
+		else
+			endPoint.addParameter("multrun","next");
+	}
+		
+	/**
+	 * Set the exposure type. This is an optional call and defaults (at the server end) to "exposure".
+	 * @param exposureType A string describing the type of exposure: one of: "exposure", "sky-flat", "acquire", 
+	 *                    "standard".
+	 * @see #endPoint
+	 * @see ngat.flask.EndPoint#addParameter(java.lang.String,java.lang.String)
+	 */
+	public void setExposureType(String exposureType)
+	{
+		endPoint.addParameter("exposure_type",exposureType);
+	}
+		
 	/**
 	 * Return the message string returned by the Flask end-point.
 	 * @return The message as a string returned by the Flask end-point 
@@ -101,13 +117,15 @@ public class TakeExposureCommand extends Command implements Runnable
 	{
 		TakeExposureCommand command = null;
 		String hostname = null;
-		String filename = null;;
+		String filename = null;
+		String exposureType = new String("exposure");
 		double exposureLength;
 		int portNumber = 5100;
+		boolean isMultrunStart = false;
 
-		if(args.length != 3)
+		if(args.length < 3)
 		{
-			System.out.println("java ngat.loci.ccd.TakeExposureCommand <hostname> <port number> <exposurelength s>");
+			System.out.println("java ngat.loci.ccd.TakeExposureCommand <hostname> <port number> <exposurelength s> [<multrun:start|next> <exposure type>]");
 			System.exit(1);
 		}
 		try
@@ -115,12 +133,31 @@ public class TakeExposureCommand extends Command implements Runnable
 			hostname = args[0];
 			portNumber = Integer.parseInt(args[1]);
 			exposureLength = Double.parseDouble(args[2]);
+			if(args.length > 3)
+			{
+				if(args[3].equalsIgnoreCase("start"))
+					isMultrunStart = true;
+				else if(args[3].equalsIgnoreCase("next"))
+					isMultrunStart = false;
+				else
+				{
+					throw new Exception("TakeExposureCommand:main:multrun parameter is not one of 'start' or 'next':"+
+							    args[3]);
+				}
+			}
+			if(args.length > 4)
+			{
+				exposureType = args[4];
+			}
 			command = new TakeExposureCommand();
 			command.initialiseLogging();
 			command.setAddress(hostname);
 			command.setPortNumber(portNumber);
 			command.setExposureLength(exposureLength);
-			//command.setFilename(filename);
+			if(args.length > 3)
+				command.setMultrun(isMultrunStart);
+			if(args.length > 4)
+				command.setExposureType(exposureType);
 			command.run();
 			if(command.getRunException() != null)
 			{

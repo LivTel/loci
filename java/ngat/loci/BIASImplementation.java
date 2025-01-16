@@ -53,7 +53,6 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 	 * @see ngat.message.base.ACK#setTimeToComplete
 	 * @see LociStatus#getMaxReadoutTime
 	 * @see LociTCPServerConnectionThread#getDefaultAcknowledgeTime
-	 * @see CALIBRATEImplementation#MILLISECONDS_PER_SECOND
 	 * @see #status
 	 * @see #serverConnectionThread
 	 */
@@ -76,6 +75,7 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 	 * <li>clearFitsHeaders is called.
 	 * <li>setFitsHeaders is called to get some FITS headers from the properties files and add them to loci-crtl
 	 *     CCD Flask layer.
+	 * <li>setFilterWheelFitsHeaderss is called to get the current filter wheel position, and set some FITS headers based on this.
 	 * <li>getFitsHeadersFromISS is called to gets some FITS headers from the ISS (RCS). 
 	 *     These are sent on to the loci-crtl CCD Flask layer.
 	 * <li>We send a takeBiasFrame command to the loci-crtl CCD Flask layer, which returns the generated
@@ -88,6 +88,7 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 	 * @see ngat.loci.CALIBRATEImplementation#sendTakeBiasFrameCommand
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
+	 * @see ngat.loci.HardwareImplementation#setFilterWheelFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#getFitsHeadersFromISS
 	 */
 	public COMMAND_DONE processCommand(COMMAND command)
@@ -120,6 +121,8 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 			   ":processCommand:getting FITS headers from properties.");
 		if(setFitsHeaders(biasCommand,biasDone) == false)
 			return biasDone;
+		if(setFilterWheelFitsHeaders(biasCommand,biasDone) == false)
+			return biasDone;
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:Setting per-frame FITS headers.");
 		if(setPerFrameFitsHeaders(biasCommand,biasDone,FitsHeaderDefaults.OBSTYPE_VALUE_BIAS,0,1,1) == false)
@@ -135,10 +138,10 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 			 ":processCommand:Setting up FITS filename multrun.");
 		// call take bias frame command
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
-			   ":processCommand:Starting sendTakeBiasFrameCommand.");
+			   ":processCommand:Starting sendTakeBiasFrameCommand(isMultrunStart=true).");
 		try
 		{
-			filename = sendTakeBiasFrameCommand();
+			filename = sendTakeBiasFrameCommand(true);
 		}
 		catch(Exception e )
 		{

@@ -30,7 +30,7 @@ CONFIG_SRCS	= loci1.loci.net.properties loci1.loci.properties loci1.fits.propert
 CONFIG_OBJS	= $(CONFIG_SRCS:%.properties=$(CONFIG_BINDIR)/%.properties)
 SCRIPT_SRCS	= 
 SCRIPT_OBJS	= $(SCRIPT_SRCS:%=$(SCRIPT_BINDIR)/%)
-DIRS 		= ccd
+DIRS 		= ccd filterwheel
 
 top: dirs $(OBJS) config scripts dirs
 

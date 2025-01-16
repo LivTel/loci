@@ -56,17 +56,20 @@ public class TakeDarkFrameCommand extends Command implements Runnable
 	}
 	
 	/**
-	 * Set the filename passed to the Flask takeDarkFrame end-point. This is the FITS filename to put the read out
-	 * dark frame image into.
-	 * @param filename A string, the FITS filename.
+	 * Set whether the frame to be acquired is the first one in a multrun or not.
+	 * @param isMultrunStart A boolean, true if this frame is the first one to be acquired in the Multrun, and
+	 *        false if it is NOT the first frame in a multrun.
 	 * @see #endPoint
 	 * @see ngat.flask.EndPoint#addParameter(java.lang.String,java.lang.String)
 	 */
-	//public void setFilename(String filename)
-	//{
-	//	endPoint.addParameter("filename",filename);
-	//}
-	
+	public void setMultrun(boolean isMultrunStart)
+	{
+		if(isMultrunStart)
+			endPoint.addParameter("multrun","start");
+		else
+			endPoint.addParameter("multrun","next");
+	}
+		
 	/**
 	 * Return the message string returned by the Flask end-point.
 	 * @return The message as a string returned by the Flask end-point 
@@ -103,10 +106,12 @@ public class TakeDarkFrameCommand extends Command implements Runnable
 		String filename = null;;
 		double exposureLength;
 		int portNumber = 5100;
+		boolean isMultrunStart = false;
 
-		if(args.length != 3)
+		if(args.length < 3)
 		{
-			System.out.println("java ngat.loci.ccd.TakeDarkFrameCommand <hostname> <port number> <exposurelength s>");
+			System.out.println("java ngat.loci.ccd.TakeDarkFrameCommand <hostname> <port number> <exposurelength s> [multrun:start|next]");
+			System.out.println("\tThe optional third parameter is one of 'start' or 'next' and determines whether a new multrun is started or a new frame is acquired for an already started multrun, which affects the returned generated filename.");
 			System.exit(1);
 		}
 		try
@@ -114,13 +119,25 @@ public class TakeDarkFrameCommand extends Command implements Runnable
 			hostname = args[0];
 			portNumber = Integer.parseInt(args[1]);
 			exposureLength = Double.parseDouble(args[2]);
-			//filename = args[3];
+			if(args.length > 3)
+			{
+				if(args[3].equalsIgnoreCase("start"))
+					isMultrunStart = true;
+				else if(args[3].equalsIgnoreCase("next"))
+					isMultrunStart = false;
+				else
+				{
+					throw new Exception("TakeDarkFrameCommand:main:multrun parameter is not one of 'start' or 'next':"+
+							    args[3]);
+				}
+			}
 			command = new TakeDarkFrameCommand();
 			command.initialiseLogging();
 			command.setAddress(hostname);
 			command.setPortNumber(portNumber);
 			command.setExposureLength(exposureLength);
-			//command.setFilename(filename);
+			if(args.length > 3)
+				command.setMultrun(isMultrunStart);
 			command.run();
 			if(command.getRunException() != null)
 			{
