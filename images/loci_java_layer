@@ -12,6 +12,22 @@ ADD /home/dev/bin/javalib/ngat_flask.jar ngat_flask.jar
 ADD /home/dev/bin/javalib/ngat_message_iss_inst.jar ngat_message_iss_inst.jar
 ADD /home/dev/bin/javalib/ngat_message_inst_dp.jar ngat_message_inst_dp.jar
 ADD /home/dev/bin/javalib/ngat_message_base.jar ngat_message_base.jar
+#
+# EXPOSE ports
+#
+# loci JMS server port
+EXPOSE 7679
+# loci TIT server port
+EXPOSE 8473
+# ISS uses port 7383, this is outgoing from this container
+#
+# Volumes
+# Or should these be runtime created bind mount points?
+#
+# Where ngat.loci.Loci expects to find it's configuration file tree 
+#VOLUME /icc
+# Where the Loci CCD Flask API puts Loci FITS images
+#VOLUME /data
 # Config files
 #COPY /home/dev/bin/config/loci.current.filter.properties current.filter.properties
 #COPY /home/dev/bin/config/loci.filter.properties filter.properties
