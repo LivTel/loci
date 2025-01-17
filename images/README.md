@@ -9,7 +9,7 @@ This directory contains a Dockerfile for building a Loci Java layer docker conta
 To build a docker container do the following (on an LT development machine, where the loci software repository is installed at /home/dev/src/loci) :
 
 * **cd ~dev/src/loci/images** (i.e. this directory)
-* **sudo docker build -f loci_java_layer -t loci_java_layer_image /** Build the docker containder from the **loci_java_layer** file.
+* **sudo docker build -f loci_java_layer -t loci_java_layer_image /** Build the docker container from the **loci_java_layer** file.
 * **docker save -o loci_java_layer_image.tar loci_java_layer_image** Save the constructed docker container into the **loci_java_layer_image.tar** tarball.
 
 This saved docker tarball can then be copied to loci1 (the Loci control computer) as follows:
@@ -41,7 +41,7 @@ Then install the config tarball as follows:
 * **ssh admin@loci1**
 * **cd /**
 * **sudo tar xvfz /home/admin/images/loci_config_deployment.tar.gz** 
-* **sudo chown root:root /** This fixes root's permisions.
+* **sudo chown root:root /** This fixes root's permissions.
 
 ### Starting the Loci Java layer
 
