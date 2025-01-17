@@ -68,7 +68,7 @@ The Loci Java layer can be stopped as follows:
 * **sudo docker ps**
 Find the **loci-java-layer** container id and then do the following:
 
-* **sudo docker kill <containerid>**
-* **sudo docker remove <containerid>**
+* **sudo docker kill &lt;containerid&gt;**
+* **sudo docker remove &lt;containerid&gt;**
 
 You need to remove the container to re-use the loci-java-layer container name.
