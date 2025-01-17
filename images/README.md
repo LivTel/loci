@@ -60,3 +60,15 @@ An explanation of the command line:
 * **-d** : docker is a daemon (detach from terminal)
 * **--restart unless-stopped** : restart docker on exit, unless it has been explicitly stopped using docker kill
 * **-it** : -t allocate a pseodo-tty, -i interactive. Do we need these?
+
+### Stopping the Loci Java layer
+
+The Loci Java layer can be stopped as follows:
+
+* **sudo docker ps**
+Find the **loci-java-layer** container id and then do the following:
+
+* **sudo docker kill <containerid>**
+* **sudo docker remove <containerid>**
+
+You need to remove the container to re-use the loci-java-layer container name.
