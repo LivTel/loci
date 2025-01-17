@@ -40,8 +40,8 @@ Then install the config tarball as follows:
 
 * **ssh admin@loci1**
 * **cd /**
-* **sudo tar xvfz /home/admin/images/loci_config_deployment.tar.gz** This messes with **/**s permisions at the moment.
-* **sudo chown root:root /** This fixes **/**s permisions.
+* **sudo tar xvfz /home/admin/images/loci_config_deployment.tar.gz** 
+* **sudo chown root:root /** This fixes root's permisions.
 
 ### Starting the Loci Java layer
 
