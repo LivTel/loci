@@ -34,7 +34,7 @@ The **docker-compose.yaml** file is a docker compose file. This can build a dock
   * ngat_flask.jar
   * ngat_message_iss_inst.jar
   * ngat_message_inst_dp.jar
- * ngat_message_base.jar
+  * ngat_message_base.jar
 * The software can only be built from within an LT development environment
 * You need a json handling library, we currently use org.json : json-20240303.jar . This is available here: https://mvnrepository.com/artifact/org.json/json/20240303
 
