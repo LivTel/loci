@@ -47,7 +47,16 @@ Then install the config tarball as follows:
 
 The Loci Java layer can then be started as follows:
 
-* **sudo docker run -p 7679:7679 -p 8473:8473 --mount type=bind,src=/icc,dst=/icc --mount type=bind,src=/data,dst=/data -it loci_java_layer_image**
+* **sudo docker run -p 7679:7679 -p 8473:8473 --mount type=bind,src=/icc,dst=/icc --mount type=bind,src=/data,dst=/data --name=loci-java-layer -it -d --restart unless-stopped loci_java_layer_image**
 
 For this to work the Loci Java layer config files need to have been installed under **/icc** first. 
 
+An explanation of the command line:
+
+* **-p 7679:7679 -p 8473:8473** : allow access via ports 7679, 8473
+* **--mount type=bind,src=/icc,dst=/icc** : allow docker to access /icc as /icc to load java layer config files, and write logs
+* **--mount type=bind,src=/data,dst=/data** : allow docker to access /data as /data to access FITS images written by the Loci CCD Flask API. These actually only need accessing for the TITServer, which can transfer them back to the ics_gui.
+* **--name=loci-java-layer** docker is called loci-java-layer in docker ps
+* **-d** : docker is a daemon (detach from terminal)
+* **--restart unless-stopped** : restart docker on exit, unless it has been explicitly stopped using docker kill
+* **-it** : -t allocate a pseodo-tty, -i interactive. Do we need these?
