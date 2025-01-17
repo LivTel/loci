@@ -25,16 +25,16 @@ The **docker-compose.yaml** file is a docker compose file. This can build a dock
 ## Dependencies / Prerequisites
 
 * The ngat repo/package must be installed: https://github.com/LivTel/ngat .  The specific sub-packages required can be derived from the images/loci_java_layer dockerfile, currently:
-..* ngat_util_logging.jar
-..* ngat_util.jar
-..* ngat_phase2.jar
-..* ngat_net.jar
-..* ngat_math.jar
-..* ngat_fits.jar
-..* ngat_flask.jar
-..* ngat_message_iss_inst.jar
-..* ngat_message_inst_dp.jar
-..* ngat_message_base.jar
+  * ngat_util_logging.jar
+  * ngat_util.jar
+  * ngat_phase2.jar
+  * ngat_net.jar
+  * ngat_math.jar
+  * ngat_fits.jar
+  * ngat_flask.jar
+  * ngat_message_iss_inst.jar
+  * ngat_message_inst_dp.jar
+ * ngat_message_base.jar
 * The software can only be built from within an LT development environment
 * You need a json handling library, we currently use org.json : json-20240303.jar . This is available here: https://mvnrepository.com/artifact/org.json/json/20240303
 
