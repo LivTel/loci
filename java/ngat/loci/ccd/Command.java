@@ -203,7 +203,7 @@ public class Command implements Runnable
 						  "ngat.loci.ccd.GetTemperatureCommand",
 						  "ngat.loci.ccd.SetCoolingCommand",
 						  "ngat.loci.ccd.SetHeaderKeywordCommand",
-						  "ngat.loci.ccd.SetImageWindowCommand",
+						  "ngat.loci.ccd.SetImageDimensionsCommand",
 						  "ngat.loci.ccd.SetTemperatureCommand",
 						  "ngat.loci.ccd.TakeBiasFrameCommand",
 						  "ngat.loci.ccd.TakeDarkFrameCommand",

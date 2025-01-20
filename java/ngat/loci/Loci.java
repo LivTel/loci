@@ -232,8 +232,11 @@ public class Loci
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.Command"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.AbortExposureCommand"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.GetCameraStatusCommand"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.GetExposureProgressCommand"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.GetTemperatureCommand"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.SetCoolingCommand"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.SetHeaderKeywordCommand"),null,Logging.ALL);
+		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.SetImageDimensionsCommand"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.SetTemperatureCommand"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.TakeBiasFrameCommand"),null,Logging.ALL);
 		copyLogHandlers(logLogger,LogManager.getLogger("ngat.loci.ccd.TakeDarkFrameCommand"),null,Logging.ALL);

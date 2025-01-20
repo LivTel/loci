@@ -86,7 +86,7 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 	 * <li>The DONE message is created.
 	 * <li>We test for command abort.
 	 * <li>We call sendSetFilterPositionByNameCommand to set the filter wheel to the position specified by the filter name.
-	 * <li>We call sendSetImageWindowCommand to set the detector binning and sub-window.
+	 * <li>We call sendSetImageDimensionsCommand to set the detector binning and sub-window.
 	 * <li>We calculate the focus offset from "loci.focus.offset", and call setFocusOffset to tell the RCS/TCS
 	 *     the focus offset required.
 	 * <li>We increment the config Id.
@@ -95,7 +95,7 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 	 * <li>We return success.
 	 * </ul>
 	 * @see #sendSetFilterPositionByNameCommand
-	 * @see #sendSetImageWindowCommand
+	 * @see #sendSetImageDimensionsCommand
 	 * @see #testAbort
 	 * @see #setFocusOffset
 	 * @see #loci
@@ -166,7 +166,7 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 		try
 		{
 			sendSetFilterPositionByNameCommand(config.getFilterName());
-			sendSetImageWindowCommand(config.getDetector(0));
+			sendSetImageDimensionsCommand(config.getDetector(0));
 		}
 		catch(Exception e)
 		{
@@ -299,34 +299,34 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 	 * Send a setImageWindow CCD Flask API call to configure the detector binning and sub-window.
 	 * <ul>
 	 * <li>We get the CCD Flask API connection data by calling  getCCDFlaskConnectionData.
-	 * <li>We construct and initialise a SetImageWindowCommand instance.
+	 * <li>We construct and initialise a SetImageDimensionsCommand instance.
 	 * <li>We set the detector binning factors from the LociDetector detector parameter.
 	 * <li>If the detector window is active, We set the detector sub-image from the 
 	 *     LociDetector detector window parameter.
-	 * <li>We run the SetImageWindowCommand instance.
+	 * <li>We run the SetImageDimensionsCommand instance.
 	 * <li>We check whether the command threw an exception, or returned an error.
 	 * </ul>
 	 * @param detector An instance of LociDetector containing the binning and windowing to configure.
 	 * @see #getCCDFlaskConnectionData
 	 * @see #ccdFlaskHostname
 	 * @see #ccdFlaskPortNumber
-	 * @see ngat.loci.ccd.SetImageWindowCommand
+	 * @see ngat.loci.ccd.SetImageDimensionsCommand
 	 * @see ngat.phase2.LociDetector
-	 * @exception UnknownHostException Thrown if the address passed to SetImageWindowCommand.setAddress is not a 
+	 * @exception UnknownHostException Thrown if the address passed to SetImageDimensionsCommand.setAddress is not a 
 	 *            valid host.
-	 * @exception Exception Thrown if the SetImageWindowCommand generates a run exception, or the return
+	 * @exception Exception Thrown if the SetImageDimensionsCommand generates a run exception, or the return
 	 *            status is not success.
 	 */
-	protected void sendSetImageWindowCommand(Detector detector) throws UnknownHostException, Exception
+	protected void sendSetImageDimensionsCommand(Detector detector) throws UnknownHostException, Exception
 	{
-		SetImageWindowCommand command = null;
+		SetImageDimensionsCommand command = null;
 		Window window = null;
 		
-		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendSetImageWindowCommand:started.");
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendSetImageDimensionsCommand:started.");
 		// get CCD Flask API connection data
 		getCCDFlaskConnectionData();
 		// setup command
-		command = new SetImageWindowCommand();
+		command = new SetImageDimensionsCommand();
 		command.setAddress(ccdFlaskHostname);
 		command.setPortNumber(ccdFlaskPortNumber);
 		// binning
@@ -347,16 +347,16 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 		if(command.getRunException() != null)
 		{
 			throw new Exception(this.getClass().getName()+
-					    ":sendSetImageWindowCommand:Failed:"+command.getRunException(),
+					    ":sendSetImageDimensionsCommand:Failed:"+command.getRunException(),
 					    command.getRunException());
 		}
 		loci.log(Logging.VERBOSITY_VERBOSE,
-			 "sendSetImageWindowCommand:Set Image Window Command Finished with status: "+
+			 "sendSetImageDimensionsCommand:Set Image Dimensions Command Finished with status: "+
 			 command.getReturnStatus()+" and message:"+command.getMessage()+".");
 		if(command.isReturnStatusSuccess() == false)
 		{
 			throw new Exception(this.getClass().getName()+
-					    ":sendSetImageWindowCommand:Set Image Window Command failed with status: "+
+				    ":sendSetImageDimensionsCommand:Set Image Dimensions Command failed with status: "+
 					    command.getReturnStatus()+" and message:"+command.getMessage()+".");
 		}
 	}
