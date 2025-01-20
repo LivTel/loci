@@ -13,6 +13,12 @@ ADD /home/dev/bin/javalib/ngat_message_iss_inst.jar ngat_message_iss_inst.jar
 ADD /home/dev/bin/javalib/ngat_message_inst_dp.jar ngat_message_inst_dp.jar
 ADD /home/dev/bin/javalib/ngat_message_base.jar ngat_message_base.jar
 #
+# Shared libraries
+# Note these should be built from source, this is really dodgy
+#
+ADD /home/dev/bin/lib/x86_64-linux/libngatutil.so libngatutil.so 
+#
+#
 # EXPOSE ports
 #
 # loci JMS server port
@@ -45,6 +51,8 @@ EXPOSE 8473
 #RUN mkdir -p /home/dev/tmp/
 # Setup CLASSPATH
 ENV CLASSPATH="ngat_loci.jar:json-20240303.jar:ngat_util_logging.jar:ngat_util.jar:ngat_net.jar:ngat_phase2.jar:ngat_math.jar:ngat_fits.jar:ngat_flask.jar:ngat_message_iss_inst.jar:ngat_message_inst_dp.jar:ngat_message_base.jar"
+# Setup LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:."
 # Command line example:
 #java ngat.loci.Loci -current_filter_property_filename current.filter.properties -filter_property_filename filter.properties -fits_property_filename fits.properties -loci_property_filename loci.properties -net_property_filename loci.net.properties -log 5
 #ENTRYPOINT ["java", "ngat.loci.Loci", "-current_filter_property_filename", "current.filter.properties", "-filter_property_filename", "filter.properties", "-fits_property_filename", "fits.properties", "-loci_property_filename", "loci.properties", "-net_property_filename", "loci.net.properties", "-log", "5"]
