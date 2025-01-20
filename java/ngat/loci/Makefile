@@ -24,7 +24,8 @@ SETUP_IMPL_SRCS		= CONFIGImplementation.java
 OBJS 		= $(SRCS:%.java=$(BINDIR)/%.class)
 
 CONFIG_SRCS	= loci1.loci.net.properties loci1.loci.properties loci1.fits.properties \
-		  ltdevx64.loci.net.properties ltdevx64.loci.properties ltdevx64.fits.properties
+		  ltdevx64.loci.net.properties ltdevx64.loci.properties ltdevx64.fits.properties \
+		  docker.loci.net.properties docker.loci.properties docker.fits.properties
 
 CONFIG_OBJS	= $(CONFIG_SRCS:%.properties=$(CONFIG_BINDIR)/%.properties)
 SCRIPT_SRCS	= 

@@ -1,0 +1,69 @@
+FROM openjdk:8
+# Required jars
+ADD /home/dev/bin/javalib/ngat_loci.jar ngat_loci.jar
+ADD /home/dev/bin/javalib_third_party/json-20240303.jar json-20240303.jar
+ADD /home/dev/bin/javalib/ngat_util_logging.jar ngat_util_logging.jar
+ADD /home/dev/bin/javalib/ngat_util.jar ngat_util.jar
+ADD /home/dev/bin/javalib/ngat_phase2.jar ngat_phase2.jar
+ADD /home/dev/bin/javalib/ngat_net.jar ngat_net.jar
+ADD /home/dev/bin/javalib/ngat_math.jar ngat_math.jar
+ADD /home/dev/bin/javalib/ngat_fits.jar ngat_fits.jar
+ADD /home/dev/bin/javalib/ngat_flask.jar ngat_flask.jar
+ADD /home/dev/bin/javalib/ngat_message_iss_inst.jar ngat_message_iss_inst.jar
+ADD /home/dev/bin/javalib/ngat_message_inst_dp.jar ngat_message_inst_dp.jar
+ADD /home/dev/bin/javalib/ngat_message_base.jar ngat_message_base.jar
+#
+# Shared libraries
+# Note these should be built from source, this is really dodgy
+#
+ADD /home/dev/bin/lib/x86_64-linux/libngatutil.so libngatutil.so 
+#
+#
+# EXPOSE ports
+#
+# loci JMS server port
+EXPOSE 7679
+# loci TIT server port
+EXPOSE 8473
+# ISS uses port 7383, this is outgoing from this container
+#
+# Volumes
+# Or should these be runtime created bind mount points?
+#
+# Where ngat.loci.Loci expects to find it's configuration file tree 
+#VOLUME /icc
+# Where the Loci CCD Flask API puts Loci FITS images
+#VOLUME /data
+# Config files
+#COPY /home/dev/bin/config/loci.current.filter.properties current.filter.properties
+#COPY /home/dev/bin/config/loci.filter.properties filter.properties
+# These are for a docker image running on ltdevx64 talking to loci1 on 150.204.240.135
+# Replace them with loci1. versions later
+#COPY /home/dev/bin/loci/java/ltdevx64.fits.properties fits.properties
+#COPY /home/dev/bin/loci/java/ltdevx64.loci.properties loci.properties
+#COPY /home/dev/bin/loci/java/ltdevx64.loci.net.properties loci.net.properties
+#
+# directory structure
+#
+#RUN mkdir -p /icc/log/
+#RUN mkdir -p /icc/tmp/
+#RUN mkdir -p /icc/config/
+#RUN mkdir -p /home/dev/tmp/
+# Setup CLASSPATH
+ENV CLASSPATH="ngat_loci.jar:json-20240303.jar:ngat_util_logging.jar:ngat_util.jar:ngat_net.jar:ngat_phase2.jar:ngat_math.jar:ngat_fits.jar:ngat_flask.jar:ngat_message_iss_inst.jar:ngat_message_inst_dp.jar:ngat_message_base.jar"
+# Setup LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:."
+# Command line example:
+#java ngat.loci.Loci -current_filter_property_filename current.filter.properties -filter_property_filename filter.properties -fits_property_filename fits.properties -loci_property_filename loci.properties -net_property_filename loci.net.properties -log 5
+#ENTRYPOINT ["java", "ngat.loci.Loci", "-current_filter_property_filename", "current.filter.properties", "-filter_property_filename", "filter.properties", "-fits_property_filename", "fits.properties", "-loci_property_filename", "loci.properties", "-net_property_filename", "loci.net.properties", "-log", "5"]
+# Config files in '.'
+#ENTRYPOINT java ngat.loci.Loci -current_filter_property_filename current.filter.properties -filter_property_filename filter.properties -fits_property_filename fits.properties -loci_property_filename loci.properties -net_property_filename loci.net.properties -log 5
+# Config files in /icc tree
+# This expects the following config files:
+# /icc/config/current.filter.properties
+# /icc/config/filter.properties
+# /icc/bin/loci/java/fits.properties
+# /icc/bin/loci/java/loci.properties
+# /icc/bin/loci/java/loci.net.properties
+ENTRYPOINT java ngat.loci.Loci -current_filter_property_filename /icc/config/current.filter.properties -filter_property_filename /icc/config/filter.properties -fits_property_filename /icc/bin/loci/java/fits.properties -loci_property_filename /icc/bin/loci/java/loci.properties -net_property_filename /icc/bin/loci/java/loci.net.properties -log 5
+
