@@ -28,20 +28,12 @@ EXPOSE 8473
 # ISS uses port 7383, this is outgoing from this container
 #
 # Volumes
-# Or should these be runtime created bind mount points?
+# These should these be runtime created bind mount points, not docker VOLUMEs
 #
 # Where ngat.loci.Loci expects to find it's configuration file tree 
 #VOLUME /icc
 # Where the Loci CCD Flask API puts Loci FITS images
 #VOLUME /data
-# Config files
-#COPY /home/dev/bin/config/loci.current.filter.properties current.filter.properties
-#COPY /home/dev/bin/config/loci.filter.properties filter.properties
-# These are for a docker image running on ltdevx64 talking to loci1 on 150.204.240.135
-# Replace them with loci1. versions later
-#COPY /home/dev/bin/loci/java/ltdevx64.fits.properties fits.properties
-#COPY /home/dev/bin/loci/java/ltdevx64.loci.properties loci.properties
-#COPY /home/dev/bin/loci/java/ltdevx64.loci.net.properties loci.net.properties
 #
 # directory structure
 #
