@@ -1,4 +1,4 @@
-// SetImageWindowCommand.java
+// SetImageDimensionsCommand.java
 // $Id$
 package ngat.loci.ccd;
 
@@ -13,11 +13,11 @@ import ngat.util.logging.*;
 import ngat.loci.ccd.Command;
 
 /**
- * Invoke the Loci CCD Flask end-point 'setImageWindow'.
+ * Invoke the Loci CCD Flask end-point 'setImageDimensions'.
  * @author Chris Mottram
  * @version $Revision$
  */
-public class SetImageWindowCommand extends Command implements Runnable
+public class SetImageDimensionsCommand extends Command implements Runnable
 {
 	/**
 	 * Revision Control System id string, showing the version of the Class.
@@ -26,22 +26,22 @@ public class SetImageWindowCommand extends Command implements Runnable
 	
 	/**
 	 * Default constructor. Call's the Command super-class constructor.
-	 * Then sets the Flask end-point name to "setImageWindow" and the end-point to a "POST" end-point.
+	 * Then sets the Flask end-point name to "setImageDimenions" and the end-point to a "POST" end-point.
 	 * @see #logger
 	 * @see #endPoint
 	 * @see ngat.flask.EndPoint#setFlaskEndPointName
 	 * @see ngat.flask.EndPoint#setDoPost
 	 */
-	public SetImageWindowCommand()
+	public SetImageDimensionsCommand()
 	{
 		super();
 		logger = LogManager.getLogger(this);
-		endPoint.setFlaskEndPointName("setImageWindow");
+		endPoint.setFlaskEndPointName("setImageDimensions");
 		endPoint.setDoPost();
 	}
 
 	/**
-	 * Set the horizontal binning passed to the Flask setImageWindow end-point. 
+	 * Set the horizontal binning passed to the Flask setImageDimensions end-point. 
 	 * @param value The horizontal binning factor as an integer. This should be at least '1'. 
 	 * @see #endPoint
 	 * @see ngat.flask.EndPoint#addParameter(java.lang.String,int)
@@ -54,7 +54,7 @@ public class SetImageWindowCommand extends Command implements Runnable
 	}
 	
 	/**
-	 * Set the vertical binning passed to the Flask setImageWindow end-point. 
+	 * Set the vertical binning passed to the Flask setImageDimensions end-point. 
 	 * @param value The vertical binning factor as an integer. This should be at least '1'. 
 	 * @see #endPoint
 	 * @see ngat.flask.EndPoint#addParameter(java.lang.String,int)
@@ -68,7 +68,7 @@ public class SetImageWindowCommand extends Command implements Runnable
 	
 	/**
 	 * Set the horizontal/x coordinate of the start pixel of a sub-window passed to the Flask 
-	 * setImageWindow end-point. 
+	 * setImageDimensions end-point. 
 	 * @param value The horizontal/x coordinate of the start pixel of a sub-window as an integer. 
 	 *        This should be at least '1', and less than the size of the chip ('2048'). It is in unbinned pixels. 
 	 * @see #endPoint
@@ -83,7 +83,7 @@ public class SetImageWindowCommand extends Command implements Runnable
 	
 	/**
 	 * Set the vertical/y coordinate of the start pixel of a sub-window passed to the Flask 
-	 * setImageWindow end-point. 
+	 * setImageDimensions end-point. 
 	 * This parameter is optional.
 	 * @param value The vertical/y coordinate of the start pixel of a sub-window as an integer. 
 	 *        This should be at least '1', and less than the size of the chip ('2048'). It is in unbinned pixels. 
@@ -99,7 +99,7 @@ public class SetImageWindowCommand extends Command implements Runnable
 	
 	/**
 	 * Set the horizontal/x coordinate of the end pixel of a sub-window passed to the Flask 
-	 * setImageWindow end-point. 
+	 * setImageDimensions end-point. 
 	 * @param value The horizontal/x coordinate of the end pixel of a sub-window as an integer. 
 	 *        This should be at least '1', and less than the size of the chip ('2048'). 
 	 *        It should have a value larger than the horizontal start coordinate. It is in unbinned pixels. 
@@ -115,7 +115,7 @@ public class SetImageWindowCommand extends Command implements Runnable
 	
 	/**
 	 * Set the vertical/y coordinate of the end pixel of a sub-window passed to the Flask 
-	 * setImageWindow end-point. 
+	 * setImageDimensions end-point. 
 	 * @param value The vertical/y coordinate of the end pixel of a sub-window as an integer. 
 	 *        This should be at least '1', and less than the size of the chip ('2048'). 
 	 *        It should have a value larger than the vertical start coordinate. It is in unbinned pixels. 
@@ -147,14 +147,14 @@ public class SetImageWindowCommand extends Command implements Runnable
 	 */
 	public static void main(String args[])
 	{
-		SetImageWindowCommand command = null;
+		SetImageDimensionsCommand command = null;
 		String hostname = null;
 		int portNumber = 5100;
 		int xBin,yBin,startX=0,startY=0,endX=0,endY=0;
 
 		if((args.length != 4)&&(args.length != 8))
 		{
-			System.out.println("java ngat.loci.ccd.SetImageWindowCommand <hostname> <port number> <xbin> <ybin> [<startX> <startY> <endX> <endY>]");
+			System.out.println("java ngat.loci.ccd.SetImageDimensionsCommand <hostname> <port number> <xbin> <ybin> [<startX> <startY> <endX> <endY>]");
 			System.exit(1);
 		}
 		try
@@ -172,7 +172,7 @@ public class SetImageWindowCommand extends Command implements Runnable
 				endY = Integer.parseInt(args[7]);
 			}
 			// setup command
-			command = new SetImageWindowCommand();
+			command = new SetImageDimensionsCommand();
 			command.initialiseLogging();
 			command.setAddress(hostname);
 			command.setPortNumber(portNumber);
@@ -190,7 +190,7 @@ public class SetImageWindowCommand extends Command implements Runnable
 			// check for exception
 			if(command.getRunException() != null)
 			{
-				System.err.println("SetImageWindowCommand: Command failed.");
+				System.err.println("SetImageDimensionsCommand: Command failed.");
 				command.getRunException().printStackTrace(System.err);
 				System.exit(1);
 			}
