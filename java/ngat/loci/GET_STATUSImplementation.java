@@ -3,6 +3,7 @@
 package ngat.loci;
 
 import java.lang.*;
+import java.net.*;
 import java.text.*;
 import java.util.*;
 
@@ -247,6 +248,8 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 	 * <li>If the command run succeeds, we set the "Filter Wheel Connection Status:1" hashTable entry to the filter wheel connection status.
 	 * <li>We update the commsInstrumentStatus[COMMS_INSTRUMENT_STATUS_FILTER_WHEEL] to OK, to say we can communicate with the filter wheel.
 	 * </ul>
+	 * @exception UnknownHostException Thrown if setting the hostname address of the 
+	 *            GetFilterPositionCommand or GetStatusCommand fails.
 	 * @see #filterWheelFlaskHostname
 	 * @see #filterWheelFlaskPortNumber
 	 * @see #hashTable
@@ -260,7 +263,7 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 	 * @see ngat.message.ISS_INST.GET_STATUS_DONE#VALUE_STATUS_OK
 	 * @see ngat.message.ISS_INST.GET_STATUS_DONE#VALUE_STATUS_FAIL
 	 */
-	protected void getFilterWheelStatus() throws Exception
+	protected void getFilterWheelStatus() throws UnknownHostException
 	{
 		GetFilterPositionCommand filterPositionCommand = null;
 		GetStatusCommand getStatusCommand = null;
@@ -293,9 +296,6 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 			loci.error("getFilterWheelStatus:get filter position command failed with return code "+
 				   returnCode+" run exception:"+returnException,returnException);
 			return;
-			//throw new Exception(this.getClass().getName()+
-			//		    ":getFilterWheelStatus:get filter position command failed with return code "+
-			//		    returnCode,returnException);
 		}
 		// retrieve returned data and put it in the hashtable
 		filterName = filterPositionCommand.getFilterName();
@@ -326,9 +326,6 @@ public class GET_STATUSImplementation extends HardwareImplementation implements 
 			loci.error("getFilterWheelStatus:get filter position command failed with return code "+
 				   returnCode+" run exception:"+returnException,returnException);
 			return;
-			//throw new Exception(this.getClass().getName()+
-			//		    ":getFilterWheelStatus:get filter wheel status command failed with return code "+
-			//		    returnCode,returnException);
 		}
 		// retrieve returned data and put it in the hashtable
 		filterWheelConnectionStatus = getStatusCommand.getConnectionStatus();
