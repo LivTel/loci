@@ -52,7 +52,7 @@ There are command line test tools that can be invoked to control the lower level
 
 * ssh into the loci control computer.
 * **sudo docker run --entrypoint /bin/bash -it loci_java_layer_image**
-This will run up a bash sheel inside a loci_java_layer docker container instance. The actual command can then be invoked as follows:
+This will run up a bash shell inside a loci_java_layer docker container instance. The actual command can then be invoked as follows:
 
 * **java ngat.loci.ccd.GetTemperatureCommand 150.204.240.135 5100**
 
@@ -64,12 +64,12 @@ The CCD command line programs are as shown below. Running the command without an
 * **java ngat.loci.ccd.SetCoolingCommand ${hostname} 5100 true** Turn the Cooler on.
 * **java ngat.loci.ccd.AbortExposureCommand ${hostname} 5100** Abort a running Bias/Dark/Exposure
 * **java ngat.loci.ccd.SetImageDimensionsCommand ${hostname} 5100 2 2** Set the binning to 2x2. You can also set a sub-image window as follows:
-  * **java ngat.loci.ccd.SetImageDimensionsCommand <hostname> <port number> <xbin> <ybin> [<startX> <startY> <endX> <endY>]**
+  * **java ngat.loci.ccd.SetImageDimensionsCommand &lt;hostname&gt; &lt;port number&gt; &lt;xbin&gt; &lt;ybin&gt; [&lt;startX&gt; &lt;startY&gt; &lt;endX&gt; &lt;endY&gt;]**
 * **java ngat.loci.ccd.TakeBiasFrameCommand ${hostname} 5100 start** Take a Bias frame ('start' a new MULTBIAS). The command will default to 'start' if no argument is supplied, you can  call:
   * **java ngat.loci.ccd.TakeBiasFrameCommand ${hostname} 5100 next** to take subsequent bias frames in the same multbias.
 * **java ngat.loci.ccd.TakeDarkFrameCommand ${hostname} 5100 10.0 start** Take a 10 second dark frame ('start' a new MULTDARK). The command will default to 'start' if no argument is supplied, you can use 'next' for subsequent frames in a MULTDARK.
 * **java ngat.loci.ccd.TakeExposureCommand ${hostname} 5100 10.0** Take a 10 second exposure. There are more options as follows:
-  * **java ngat.loci.ccd.TakeExposureCommand <hostname> <port number> <exposurelength s> [<multrun:start|next> <exposure type>]** where <exposure type> can be one of: "exposure", "sky-flat", "acquire",  "standard"
+  * **java ngat.loci.ccd.TakeExposureCommand &lt;hostname&gt; &lt;port number&gt; &lt;exposurelength s&gt; [&lt;multrun:start|next&gt; &lt;exposure type&gt;]** where &lt;exposure type&gt; can be one of: "exposure", "sky-flat", "acquire",  "standard"
 * **java ngat.loci.ccd.GetCameraStatusCommand ${hostname} 5100** Get the Camera Status (DRV_IDLE/DRV_ACQUIRING).
 * **java ngat.loci.ccd.GetExposureProgressCommand ${hostname} 5100** Get the elapsed/remaining exposure length.
 * **java ngat.loci.ccd.ClearHeaderKeywordsCommand ${hostname} 5100** Clear the user-defined FITS header list.
