@@ -57,6 +57,9 @@ This will run up a bash shell inside a loci_java_layer docker container instance
 * **java ngat.loci.ccd.GetTemperatureCommand 150.204.240.135 5100**
 
 This gets the CCD temperature. Here the IP address is the one assigned to the loci control computer on the ARI network, when the computer is on the TLAN it's TLAN IP address should be used instead.
+
+## CCD Command line test tools
+
 The CCD command line programs are as shown below. Running the command without any arguments ususally gives some information on the command line arguments needed.
 
 * **java ngat.loci.ccd.GetTemperatureCommand ${hostname} 5100** Get the CCD temperature
@@ -74,3 +77,12 @@ The CCD command line programs are as shown below. Running the command without an
 * **java ngat.loci.ccd.GetExposureProgressCommand ${hostname} 5100** Get the elapsed/remaining exposure length.
 * **java ngat.loci.ccd.ClearHeaderKeywordsCommand ${hostname} 5100** Clear the user-defined FITS header list.
 * **java ngat.loci.ccd.SetHeaderKeywordCommand ${hostname} 5100 TEST1 1.23 float "Test FITS Header" numeric** Add a user-defined FITS header (run without options to get more information on the command line arguments).
+
+## Filter wheel Command line test tools
+
+* **java ngat.loci.filterwheel.GetFilterPositionCommand ${hostname} 5101** Get the current filter in the beam.
+* **java ngat.loci.filterwheel.GetStatusCommand ${hostname} 5101** Get the connection status of the filter wheel.
+* **java ngat.loci.filterwheel.SetFilterPositionByNameCommand ${hostname} 5101 SDSS-U** Set the current filter in the beam.
+* **java ngat.loci.filterwheel.SetFilterPositionCommand ${hostname} 5101 1** Set the current wheel position in the beam.
+
+The current filter configuration (for the Loci Java layer) is defined on the Loci instrument control computer in the file **/icc/config/current.filter.properties**. This should match the filter wheel Flask API configuration for the robotic system to work.
