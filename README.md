@@ -45,7 +45,11 @@ The **docker-compose.yaml** file is a docker compose file. This can build a dock
 We are trying to use docker to run the Java layer for Loci. Rather than using docker-compose on the control computer itself, we are currently building a docker container on an LT development machine and copying it (say via scp over the VPN) to the instrument machine on the TLAN and loading it onto docker here. The relevant configuration files also get put in a tarball and installed on the instrument machine. See the [images](images) directory for details.
 
 
-## Command line test tools
+## Python Command line test tools
+
+There are command line test tools that can be invoked to control the lower level CCD and filter wheel Flask API's. Some python scripts to invoke the lower level CCD Flask API are available in the [python/ccd/test](python/ccd/test) directory.
+
+## Java Command line test tools
 
 There are command line test tools that can be invoked to control the lower level CCD and filter wheel Flask API's. These are embedded into the Java layer docker container. As there is no software directly installed on the control computer these cannot be directly invoked from the control computer command line, however we can use the Java layer container, invoked with a different entry point (/bin/bash in this case), which will allow us to invoke the command line tools (which has the Java JVM, CLASSPATH etc already set up) as follows:
 
@@ -58,7 +62,7 @@ This will run up a bash shell inside a loci_java_layer docker container instance
 
 This gets the CCD temperature. Here the IP address is the one assigned to the loci control computer on the ARI network, when the computer is on the TLAN it's TLAN IP address should be used instead.
 
-## CCD Command line test tools
+## Java CCD Command line test tools
 
 The CCD command line programs are as shown below. Running the command without any arguments ususally gives some information on the command line arguments needed.
 
@@ -78,7 +82,7 @@ The CCD command line programs are as shown below. Running the command without an
 * **java ngat.loci.ccd.ClearHeaderKeywordsCommand ${hostname} 5100** Clear the user-defined FITS header list.
 * **java ngat.loci.ccd.SetHeaderKeywordCommand ${hostname} 5100 TEST1 1.23 float "Test FITS Header" numeric** Add a user-defined FITS header (run without options to get more information on the command line arguments).
 
-## Filter wheel Command line test tools
+## Java Filter wheel Command line test tools
 
 * **java ngat.loci.filterwheel.GetFilterPositionCommand ${hostname} 5101** Get the current filter in the beam.
 * **java ngat.loci.filterwheel.GetStatusCommand ${hostname} 5101** Get the connection status of the filter wheel.
