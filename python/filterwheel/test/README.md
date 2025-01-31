@@ -23,6 +23,6 @@ All the command-line test routines have a '--help' option with details on the op
 *  **set hostname = "150.204.240.135"**
 
 *  **test_get_filter_position.py --ip_address ${hostname} --port_number 5101** Get the current position of the filter wheel.
-*  **test_get_status.py --ip_address ${hostname} --port_number 5101** Get the current position of the filter wheel.
+*  **test_get_status.py --ip_address ${hostname} --port_number 5101** Get the current (connection) status of the filter wheel.
 *  **test_set_filter_position_by_name.py --ip_address ${hostname} --port_number 5101 --filter_name SDSS-R** Set the current position of the filter wheel by moving the specified  filter into the beam.
 *  **test_set_filter_position.py --ip_address ${hostname} --port_number 5101 --filter_position 0** Set the current position of the filter wheel by moving the specified filter position into the beam (1..5).
