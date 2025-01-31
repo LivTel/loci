@@ -47,7 +47,7 @@ We are trying to use docker to run the Java layer for Loci. Rather than using do
 
 ## Python Command line test tools
 
-There are command line test tools that can be invoked to control the lower level CCD and filter wheel Flask API's. Some python scripts to invoke the lower level CCD Flask API are available in the [python/ccd/test](python/ccd/test) directory.
+There are command line test tools that can be invoked to control the lower level CCD and filter wheel Flask API's. Some python scripts to invoke the lower level CCD Flask API are available in the [python/ccd/test](python/ccd/test) directory. Some python scripts to invoke the lower level Filter Wheel Flask API are available in the [python/filterwheel/test](python/filterwheel/test) directory.
 
 ## Java Command line test tools
 

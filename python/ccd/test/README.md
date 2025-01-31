@@ -1,4 +1,4 @@
-# LOCI Python Test Programs
+# LOCI Python CCD Test Programs
 
 This directory contains a series of python test programs, that can invoke the CCD Flask API. These were written whilst developing the LOCI Java layer, and basically mimic the Java test programs.
 
