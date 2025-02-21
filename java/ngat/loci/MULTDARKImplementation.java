@@ -95,9 +95,10 @@ public class MULTDARKImplementation extends CALIBRATEImplementation implements J
 	 * 	</ul>
 	 * <li>It sets up the return values to return to the client.
 	 * </ul>
-	 * @see #sendTakeDarkFrameCommand
 	 * @see ngat.loci.LociStatus#setExposureCount
 	 * @see ngat.loci.LociStatus#setExposureNumber
+	 * @see ngat.loci.CALIBRATEImplementation#sendTakeDarkFrameCommand
+	 * @see ngat.loci.CALIBRATEImplementation#reduceCalibrate
 	 * @see ngat.loci.CommandImplementation#testAbort
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
@@ -110,6 +111,7 @@ public class MULTDARKImplementation extends CALIBRATEImplementation implements J
 		MULTDARK multDarkCommand = (MULTDARK)command;
 		MULTDARK_DONE multDarkDone = new MULTDARK_DONE(command.getId());
 		FILENAME_ACK filenameAck = null;
+		CALIBRATE_DP_ACK calibrateDpAck = null;
 		List reduceFilenameList = null;
 		String filename = null;
 		int exposureCount,index;
@@ -196,6 +198,30 @@ public class MULTDARKImplementation extends CALIBRATEImplementation implements J
 				multDarkDone.setSuccessful(false);
 				return multDarkDone;
 			}
+		// Send dark filename to DpRt to be reduced.
+			if(reduceCalibrate(multDarkCommand,multDarkDone,filename) == false)
+				return multDarkDone;
+	       // send acknowledge to say frame has been reduced.
+			calibrateDpAck = new CALIBRATE_DP_ACK(command.getId());
+			calibrateDpAck.setTimeToComplete(multDarkCommand.getExposureTime()+status.getMaxReadoutTime()+
+						      serverConnectionThread.getDefaultAcknowledgeTime());
+	      // copy Data Pipeline results from DONE to ACK
+			calibrateDpAck.setFilename(multDarkDone.getFilename());
+			calibrateDpAck.setPeakCounts(multDarkDone.getPeakCounts());
+			calibrateDpAck.setMeanCounts(multDarkDone.getMeanCounts());
+			try
+			{
+				serverConnectionThread.sendAcknowledge(calibrateDpAck);
+			}
+			catch(IOException e)
+			{
+				loci.error(this.getClass().getName()+
+					    ":processCommand:sendAcknowledge(DP):"+command+":",e);
+				multDarkDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2703);
+				multDarkDone.setErrorString(e.toString());
+				multDarkDone.setSuccessful(false);
+				return multDarkDone;
+			}
 		// add filename to list for data pipeline processing.
 			reduceFilenameList.add(filename);
 		// test whether an abort has occured.
@@ -204,6 +230,7 @@ public class MULTDARKImplementation extends CALIBRATEImplementation implements J
 			index++;
 		}
 	// return done object.
+	// meanCounts and peakCounts set by reduceCalibrate for last image reduced.
 		multDarkDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_NO_ERROR);
 		multDarkDone.setErrorString("");
 		multDarkDone.setSuccessful(true);

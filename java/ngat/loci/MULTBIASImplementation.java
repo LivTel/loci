@@ -89,13 +89,16 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 	 * 	<li>We update the status object (setExposureNumber);
 	 *      <li>We send a FILENAME_ACK to the client updating them with the returned filename, 
 	 *          and keeping the connection open.
-	 * 	<li>Keeps track of the generated filenames in the list.
+	 * 	<li>We reduce the gnerated bias filename by calling reduceCalibrate
+	 * 	<li>We send a CALIBRATE_DP_ACK to the client updating them with the reduced filename, 
+	 *          and keeping the connection open.
 	 * 	</ul>
 	 * <li>It sets up the return values to return to the client.
 	 * </ul>
-	 * @see #sendTakeBiasFrameCommand
 	 * @see ngat.loci.LociStatus#setExposureCount
 	 * @see ngat.loci.LociStatus#setExposureNumber
+	 * @see ngat.loci.CALIBRATEImplementation#sendTakeBiasFrameCommand
+	 * @see ngat.loci.CALIBRATEImplementation#reduceCalibrate
 	 * @see ngat.loci.CommandImplementation#testAbort
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
@@ -107,8 +110,8 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 	{
 		MULTBIAS multBiasCommand = (MULTBIAS)command;
 		MULTBIAS_DONE multBiasDone = new MULTBIAS_DONE(command.getId());
+		CALIBRATE_DP_ACK calibrateDpAck = null;
 		FILENAME_ACK filenameAck = null;
-		List reduceFilenameList = null;
 		String filename = null;
 		int exposureCount,index;
 		
@@ -142,7 +145,6 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 			return multBiasDone;
 	// do bias frames
 		index = 0;
-		reduceFilenameList = new Vector();
 		while(index < multBiasCommand.getNumberExposures())
 		{
 			// setup per-frame FITS headers
@@ -195,14 +197,37 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 				multBiasDone.setSuccessful(false);
 				return multBiasDone;
 			}
-		// add filename to list for data pipeline processing.
-			reduceFilenameList.add(filename);
+		// Send bias filename to DpRt to be reduced.
+			if(reduceCalibrate(multBiasCommand,multBiasDone,filename) == false)
+				return multBiasDone;
+		// send acknowledge to say frame has been reduced.
+			calibrateDpAck = new CALIBRATE_DP_ACK(command.getId());
+			calibrateDpAck.setTimeToComplete(serverConnectionThread.getDefaultAcknowledgeTime()+
+							 status.getMaxReadoutTime());
+	        // copy Data Pipeline results from DONE to ACK
+			calibrateDpAck.setFilename(multBiasDone.getFilename());
+			calibrateDpAck.setPeakCounts(multBiasDone.getPeakCounts());
+			calibrateDpAck.setMeanCounts(multBiasDone.getMeanCounts());
+			try
+			{
+				serverConnectionThread.sendAcknowledge(calibrateDpAck);
+			}
+			catch(IOException e)
+			{
+				loci.error(this.getClass().getName()+
+					    ":processCommand:sendAcknowledge(DP):"+command+":"+e.toString());
+				multBiasDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2603);
+				multBiasDone.setErrorString(e.toString());
+				multBiasDone.setSuccessful(false);
+				return multBiasDone;
+			}
 		// test whether an abort has occured.
 			if(testAbort(multBiasCommand,multBiasDone) == true)
 				return multBiasDone;
 			index++;
 		}
 	// return done object.
+	// meanCounts and peakCounts set by reduceCalibrate for last image reduced.
 		multBiasDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_NO_ERROR);
 		multBiasDone.setErrorString("");
 		multBiasDone.setSuccessful(true);
