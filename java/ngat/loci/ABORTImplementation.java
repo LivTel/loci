@@ -66,6 +66,7 @@ public class ABORTImplementation extends CommandImplementation implements JMSCom
 	 * <li>We get the currently running thread from the status object.
 	 * <li>If the currently running thread is non-null, we call setAbortProcessCommand to tell the
 	 *     Java thread to abort itself at a suitable point.
+	 * <li>We send the DpRt an abort command.
 	 * <li>We set up a successful ABORT_DONE to return.
 	 * </ul>
 	 * @param command The abort command.
@@ -78,6 +79,7 @@ public class ABORTImplementation extends CommandImplementation implements JMSCom
 	 */
 	public COMMAND_DONE processCommand(COMMAND command)
 	{
+		ngat.message.INST_DP.ABORT dprtAbort = new ngat.message.INST_DP.ABORT(command.getId());
 		ABORT_DONE abortDone = new ABORT_DONE(command.getId());
 		LociTCPServerConnectionThread thread = null;
 
@@ -99,6 +101,9 @@ public class ABORTImplementation extends CommandImplementation implements JMSCom
 		thread = (LociTCPServerConnectionThread)status.getCurrentThread();
 		if(thread != null)
 			thread.setAbortProcessCommand();
+		// abort data pipeline
+		loci.log(Logging.VERBOSITY_TERSE,this.getClass().getName()+":processCommand:Tell DpRt to abort.");
+		loci.sendDpRtCommand(dprtAbort,serverConnectionThread);
 	// return done object.
 		loci.log(Logging.VERBOSITY_VERY_TERSE,"Command:"+command.getClass().getName()+
 			  ":Abort command completed.");
