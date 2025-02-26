@@ -2,6 +2,7 @@
 // $Id$
 package ngat.loci;
 
+import java.io.*;
 import java.lang.*;
 import java.text.*;
 import java.util.*;
@@ -80,12 +81,15 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 	 *     These are sent on to the loci-crtl CCD Flask layer.
 	 * <li>We send a takeBiasFrame command to the loci-crtl CCD Flask layer, which returns the generated
 	 *     Bias image filename.
+	 * <li>A FILENAME_ACK is sent back to the client with the new filename.
+	 * <li>reduceCalibrate is called to reduce the bias.
 	 * <li>The done object is setup, and the generated filename returned. 
 	 * </ul>
 	 * @see #testAbort
 	 * @see ngat.loci.LociStatus#setExposureCount
 	 * @see ngat.loci.LociStatus#setExposureNumber
 	 * @see ngat.loci.CALIBRATEImplementation#sendTakeBiasFrameCommand
+	 * @see ngat.loci.CALIBRATEImplementation#reduceCalibrate
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFitsHeaders
 	 * @see ngat.loci.HardwareImplementation#setFilterWheelFitsHeaders
@@ -96,6 +100,7 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 		BIAS biasCommand = (BIAS)command;
 		BIAS_DONE biasDone = new BIAS_DONE(command.getId());
 		String filename = null;
+		FILENAME_ACK filenameAck = null;
 		
 		loci.log(Logging.VERBOSITY_TERSE,this.getClass().getName()+":processCommand:Started.");
 		if(testAbort(biasCommand,biasDone) == true)
@@ -155,6 +160,26 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 		// update status
 		status.setExposureNumber(1);
 		status.setExposureFilename(filename);
+		// send acknowledge to say frame is completed.
+		filenameAck = new FILENAME_ACK(command.getId());
+		filenameAck.setTimeToComplete(serverConnectionThread.getDefaultAcknowledgeTime());
+		filenameAck.setFilename(filename);
+		try
+		{
+			serverConnectionThread.sendAcknowledge(filenameAck);
+		}
+		catch(IOException e)
+		{
+			loci.error(this.getClass().getName()+":processCommand:sendAcknowledge:"+command+":",e);
+			biasDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+702);
+			biasDone.setErrorString(this.getClass().getName()+":processCommand:sendAcknowledge:"+
+						e.toString());
+			biasDone.setSuccessful(false);
+			return biasDone;
+		}
+	// call pipeline to process data and get results
+		if(reduceCalibrate(biasCommand,biasDone,filename) == false)
+			return biasDone;
 		// setup return values.
 		// setup bias done
 		biasDone.setFilename(filename);

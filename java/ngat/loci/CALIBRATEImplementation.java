@@ -10,6 +10,7 @@ import java.util.*;
 import ngat.fits.*;
 import ngat.message.base.*;
 import ngat.message.ISS_INST.*;
+import ngat.message.INST_DP.*;
 import ngat.loci.ccd.*;
 import ngat.util.logging.*;
 
@@ -192,5 +193,52 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		filename = takeDarkFrameCommand.getFilename();
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeDarkFrameCommand:finished with filename:"+filename);
 		return filename;
+	}
+	
+	/**
+	 * This routine calls the Real Time Data Pipeline to process the calibration FITS image we have just captured.
+	 * If an error occurs the done objects field's are set accordingly. If the operation succeeds, and the
+	 * done object is of class CALIBRATE_DONE, the done object is filled with data returned from the 
+	 * reduction command.
+	 * @param command The command being implemented that made this call to the DP(RT). This is used
+	 * 	for error logging.
+	 * @param done A COMMAND_DONE subclass specific to the command being implemented. If an
+	 * 	error occurs the relevant fields are filled in with the error.
+	 * @param filename The filename of the FITS image filename to reduce.
+	 * @return The routine returns a boolean to indicate whether the operation was completed
+	 *  	successfully.
+	 * @see Loci#sendDpRtCommand
+	 */
+	public boolean reduceCalibrate(COMMAND command,COMMAND_DONE done,String filename)
+	{
+		CALIBRATE_REDUCE reduce = new CALIBRATE_REDUCE(command.getId());
+		INST_TO_DP_DONE instToDPDone = null;
+		CALIBRATE_REDUCE_DONE reduceDone = null;
+		CALIBRATE_DONE calibrateDone = null;
+
+		reduce.setFilename(filename);
+		instToDPDone = loci.sendDpRtCommand(reduce,serverConnectionThread);
+		if(instToDPDone.getSuccessful() == false)
+		{
+			loci.error(this.getClass().getName()+":reduce:"+
+				   command+":"+instToDPDone.getErrorNum()+":"+instToDPDone.getErrorString());
+			done.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+500);
+			done.setErrorString(instToDPDone.getErrorString());
+			done.setSuccessful(false);
+			return false;
+		}
+		// Copy the DP REDUCE DONE parameters to the CALIBRATE DONE parameters
+		if(instToDPDone instanceof CALIBRATE_REDUCE_DONE)
+		{
+			reduceDone = (CALIBRATE_REDUCE_DONE)instToDPDone;
+			if(done instanceof CALIBRATE_DONE)
+			{
+				calibrateDone = (CALIBRATE_DONE)done;
+				calibrateDone.setFilename(reduceDone.getFilename());
+				calibrateDone.setMeanCounts(reduceDone.getMeanCounts());
+				calibrateDone.setPeakCounts(reduceDone.getPeakCounts());
+			}
+		}
+		return true;
 	}
 }

@@ -79,6 +79,14 @@ public class Loci
 	 */
 	private int issPortNumber = 0;
 	/**
+	 * The ip address of the machine the DP(RT) is running on, to send Data Pipeline (Real Time) commands to.
+	 */
+	private InetAddress dprtAddress = null;
+	/**
+	 * The port number to send DP(RT) commands to.
+	 */
+	private int dprtPortNumber = 0;
+	/**
 	 * The port number to listen for Telescope Image Transfer requests.
 	 */
 	private int titPortNumber = 0;
@@ -113,6 +121,7 @@ public class Loci
 	 * <li>We initialise the list of commands and their implementation classes (initImplementationList)
 	 * <li>We initialise various port numbers from the properties file.
 	 * <li>We initialise the IP address of the ISS (Instrument Support Service) from the properties file.
+	 * <li>We initialise the IP address of the DpRt (Data Pipeline (Real Time)) from the properties file.
 	 * <li>We initialise various acknowledge times (timeouts associated with the receiving of commands
 	 *     over network sockets) from the properties file.
 	 * <li>
@@ -123,8 +132,10 @@ public class Loci
 	 * @see #status
 	 * @see #lociPortNumber
 	 * @see #issPortNumber
+	 * @see #dprtPortNumber
 	 * @see #titPortNumber
 	 * @see #issAddress
+	 * @see #dprtAddress
 	 * @see ngat.loci.LociStatus
 	 * @see ngat.loci.LociTCPServerConnectionThread#setDefaultAcknowledgeTime
 	 * @see ngat.loci.LociTCPServerConnectionThread#setMinAcknowledgeTime
@@ -165,9 +176,10 @@ public class Loci
 	// initialise port numbers from properties file/ command line arguments
 		try
 		{
-			lociPortNumber = status.getPropertyInteger("loci.net.default.loci.port_number");
-			issPortNumber = status.getPropertyInteger("loci.net.default.iss.port_number");
-			titPortNumber = status.getPropertyInteger("loci.net.default.tit.port_number");
+			lociPortNumber = status.getPropertyInteger("loci.net.loci.port_number");
+			issPortNumber = status.getPropertyInteger("loci.net.iss.port_number");
+			dprtPortNumber = status.getPropertyInteger("loci.net.dprt.port_number");
+			titPortNumber = status.getPropertyInteger("loci.net.tit.port_number");
 		}
 		catch(NumberFormatException e)
 		{
@@ -177,7 +189,8 @@ public class Loci
 	// initialise address's from properties file
 		try
 		{
-			issAddress = InetAddress.getByName(status.getProperty("loci.net.default.iss.address"));
+			issAddress = InetAddress.getByName(status.getProperty("loci.net.iss.address"));
+			dprtAddress = InetAddress.getByName(status.getProperty("dprt.net.dprt.address"));
 		}
 		catch(UnknownHostException e)
 		{
@@ -1009,6 +1022,79 @@ public class Loci
 			}
 		}
 		log(Logging.VERBOSITY_TERSE,
+			"Done:"+done.getClass().getName()+":successful:"+done.getSuccessful()+
+			":error number:"+done.getErrorNum()+":error string:"+done.getErrorString());
+		return done;
+	}
+
+	/**
+	 * Routine to send a command from the instrument (this application/Loci) to the DP(RT). The routine
+	 * waits until the command's done message has been returned from the DP(RT) and returns this.
+	 * If the commandThread is aborted this also stops waiting for the done message to be returned.
+	 * @param command The command to send to the DP(RT).
+	 * @param commandThread The thread the passed in command (and this method) is running on.
+	 * @return The done message returned from te DP(RT), or an error message created by this routine
+	 * 	if the done was null.
+	 * @see #dprtAddress
+	 * @see #dprtPortNumber
+	 * @see LociTCPClientConnectionThread
+	 * @see LociTCPServerConnectionThread#getAbortProcessCommand
+	 */
+	public INST_TO_DP_DONE sendDpRtCommand(INST_TO_DP command,LociTCPServerConnectionThread commandThread)
+	{
+		LociTCPClientConnectionThread thread = null;
+		INST_TO_DP_DONE done = null;
+		boolean finished = false;
+
+		log(Logging.VERBOSITY_VERY_TERSE,
+		    this.getClass().getName()+":sendDpRtCommand:"+command.getClass().getName());
+		thread = new LociTCPClientConnectionThread(dprtAddress,dprtPortNumber,command,commandThread);
+		thread.setLoci(this);
+		thread.start();
+		finished = false;
+		while(finished == false)
+		{
+			try
+			{
+				thread.join(100);// wait 100 millis for the thread to finish
+			}
+			catch(InterruptedException e)
+			{
+				error("run:join interrupted:",e);
+			}
+		// If the thread has finished so has this loop
+			finished = (thread.isAlive() == false);
+		// If the commandThread has been aborted, stop processing this thread
+			if(commandThread.getAbortProcessCommand())
+				finished = true;
+		}
+		done = (INST_TO_DP_DONE)thread.getDone();
+		if(done == null)
+		{
+			// one reason the done is null is if we escaped from the loop
+			// because the Loci server thread was aborted.
+			if(commandThread.getAbortProcessCommand())
+			{
+				done = new INST_TO_DP_DONE(command.getId());
+				error(this.getClass().getName()+":sendDpRtCommand:"+
+					command.getClass().getName()+":Server thread Aborted");
+				done.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+5);
+				done.setErrorString("sendDpRtCommand:Server thread Aborted:"+
+					command.getClass().getName());
+				done.setSuccessful(false);
+			}
+			else // a communication failure occured
+			{
+				done = new INST_TO_DP_DONE(command.getId());
+				error(this.getClass().getName()+":sendDpRtCommand:"+
+					command.getClass().getName()+":Getting Done failed");
+				done.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+6);
+				done.setErrorString("sendDpRtCommand:Getting Done failed:"+
+					command.getClass().getName());
+				done.setSuccessful(false);
+			}
+		}
+		log(Logging.VERBOSITY_VERY_TERSE,
 			"Done:"+done.getClass().getName()+":successful:"+done.getSuccessful()+
 			":error number:"+done.getErrorNum()+":error string:"+done.getErrorString());
 		return done;
