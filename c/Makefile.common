@@ -1,0 +1,11 @@
+# $Id$
+
+LOCI_C_HOME		=	c
+LOCI_C_SRC_HOME		= 	$(LOCI_SRC_HOME)/$(LOCI_C_HOME)
+LOCI_C_BIN_HOME		= 	$(LOCI_BIN_HOME)/$(LOCI_C_HOME)
+LOCI_C_DOC_HOME		= 	$(LOCI_DOC_HOME)/$(LOCI_C_HOME)
+
+# Andor library
+ANDOR_CFLAGS    = -I$(LT_SRC_HOME)/andor/andor-2.104.30000/include/
+ANDOR_LDFLAGS	= -L$(LT_SRC_HOME)/andor/andor-2.104.30000/lib/ -landor
+

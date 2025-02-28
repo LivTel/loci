@@ -10,10 +10,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include "atmcdLXd.h"
-#include "fitsio.h"
 
 /* hash definitions */
 /**
@@ -32,7 +33,7 @@ static char rcsid[] = "$Id: test_andor_exposure.c,v 1.1 2010/10/07 13:22:41 eng 
 /**
  * How many Andor cameras are detected.
  */
-static long Number_Of_Cameras = 1;
+static at_32 Number_Of_Cameras = 1;
 /**
  * Which camera to use.
  */
@@ -55,9 +56,11 @@ int main(int argc, char *argv[])
 {
 	unsigned long andor_retval;
 	at_32 Camera_Handle;
+	int i,speed_count;
+	float speed;
 	
 	GetAvailableCameras(&Number_Of_Cameras);
-	fprintf(stdout,"Found %ld cameras.\n",Number_Of_Cameras);
+	fprintf(stdout,"Found %d cameras.\n",Number_Of_Cameras);
 /* parse arguments */
 	fprintf(stdout,"Parsing Arguments.\n");
 	if(!Parse_Arguments(argc,argv))
@@ -66,7 +69,7 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stdout,"GetCameraHandle(Selected_Camera=%d)\n",Selected_Camera);
 		GetCameraHandle(Selected_Camera, &Camera_Handle);
-		fprintf(stdout,"SetCurrentCamera(Camera_Handle=%ld)\n",Camera_Handle);
+		fprintf(stdout,"SetCurrentCamera(Camera_Handle=%d)\n",Camera_Handle);
 		SetCurrentCamera(Camera_Handle);
 	}
 	fprintf(stdout,"Initialize(%s)\n",Config_Dir);
@@ -99,45 +102,45 @@ int main(int argc, char *argv[])
 		fprintf(stderr,"GetNumberVSSpeeds() failed (%lu).",andor_retval);
 		return 4;
 	}
-	fprintf(stdout,"GetNumberVSSpeeds() returned %d speeds.",speed_count);
+	fprintf(stdout,"GetNumberVSSpeeds() returned %d speeds.\n",speed_count);
 	for(i=0;i < speed_count; i++)
 	{
 		andor_retval = GetVSSpeed(i,&speed);
 		if(andor_retval != DRV_SUCCESS)
 		{
-			fprintf(stderr,"GetVSSpeed(%d) failed (%u).",i,andor_retval);
+			fprintf(stderr,"GetVSSpeed(%d) failed (%lu).",i,andor_retval);
 			return 5;
 		}
-		fprintf(stdout,"GetVSSpeed(index=%d) returned %.2f microseconds/pixel shift.",i,speed);
+		fprintf(stdout,"GetVSSpeed(index=%d) returned %.2f microseconds/pixel shift.\n",i,speed);
 	}
 	/* log horizontal readout speed data */
 	andor_retval = GetNumberHSSpeeds(0,0,&speed_count);
 	if(andor_retval != DRV_SUCCESS)
 	{
-		fprintf(stderr,"GetNumberHSSpeeds(0,0) failed (%u).",andor_retval);
+		fprintf(stderr,"GetNumberHSSpeeds(0,0) failed (%lu).",andor_retval);
 		return 6;
 	}
-	fprintf("GetNumberHSSpeeds(channel=0,type=0 (electron multiplication)) returned %d speeds.",
+	fprintf(stdout,"GetNumberHSSpeeds(channel=0,type=0) returned %d speeds.\n",
 			speed_count);
 	for(i=0;i < speed_count; i++)
 	{
 		andor_retval = GetHSSpeed(0,0,i,&speed);
 		if(andor_retval != DRV_SUCCESS)
 		{
-			fprintf(stderr,"GetHSSpeed(0,0,%d) failed (%u).",i,andor_retval);
+			fprintf(stderr,"GetHSSpeed(0,0,%d) failed (%lu).",i,andor_retval);
 			return 7;
 		}
-		fprintf(stdout,"GetHSSpeed(channel=0,type=0 (electron multiplication),index=%d) returned %.2f.",
+		fprintf(stdout,"GetHSSpeed(channel=0,type=0,index=%d) returned %.2f.\n",
 				       i,speed);
 	}
 	/* get A/D channel count */
 	andor_retval = GetNumberADChannels(&speed_count);
 	if(andor_retval != DRV_SUCCESS)
 	{
-		fprintf(stderr,"GetNumberADChannels() failed (%u).",andor_retval);
+		fprintf(stderr,"GetNumberADChannels() failed (%lu).",andor_retval);
 		return 8;
 	}
-	fprintf(stdout,"GetNumberADChannels() returned %d A/D channels.",speed_count);
+	fprintf(stdout,"GetNumberADChannels() returned %d A/D channels.\n",speed_count);
 /* close  */
 	fprintf(stdout,"ShutDown()\n");
 	ShutDown();
