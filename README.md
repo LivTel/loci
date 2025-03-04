@@ -70,7 +70,7 @@ Note everything after and including the '-c' is actually command line arguments 
  
 ## Java CCD Command line test tools
 
-The CCD command line programs are as shown below. Running the command without any arguments ususally gives some information on the command line arguments needed.
+The CCD command line programs are as shown below. Running the command without any arguments ususally gives some information on the command line arguments needed. For the below invocations we assume ${hostname} has been set appropriately (150.204.240.135 when the loci control computer is on the ARI network, and 192.168.1.x (TBD) when the loci control computer is on the LT TLAN.
 
 * **java ngat.loci.ccd.GetTemperatureCommand ${hostname} 5100** Get the CCD temperature
 * **java ngat.loci.ccd.SetTemperatureCommand ${hostname} 5100 -14** Set the CCD temperature (in degrees centigrade)
