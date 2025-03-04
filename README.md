@@ -62,6 +62,12 @@ This will run up a bash shell inside a loci_java_layer docker container instance
 
 This gets the CCD temperature. Here the IP address is the one assigned to the loci control computer on the ARI network, when the computer is on the TLAN it's TLAN IP address should be used instead.
 
+Obviously this isn't very useful for scripting, however it turns out you can run the command in one after logging into the loci control computer as follows:
+
+* **sudo docker run --entrypoint /bin/bash -it loci_java_layer_image -c 'java ngat.loci.ccd.GetTemperatureCommand 150.204.240.135 5100'**
+
+Note everything after and including the '-c' is actually command line arguments to the entrypoint (/bin/bash in the above case).
+ 
 ## Java CCD Command line test tools
 
 The CCD command line programs are as shown below. Running the command without any arguments ususally gives some information on the command line arguments needed.
