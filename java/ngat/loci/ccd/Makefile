@@ -9,7 +9,7 @@ SRCS 		= Command.java AbortExposureCommand.java \
 		  GetTemperatureCommand.java SetTemperatureCommand.java SetCoolingCommand.java \
 		  SetImageDimensionsCommand.java \
 		  TakeBiasFrameCommand.java TakeDarkFrameCommand.java TakeExposureCommand.java \
-		  GetCameraStatusCommand.java GetExposureProgressCommand.java \
+		  GetCameraStatusCommand.java GetCurrentSettingsCommand.java GetExposureProgressCommand.java \
 		  ClearHeaderKeywordsCommand.java SetHeaderKeywordCommand.java
 OBJS 		= $(SRCS:%.java=$(BINDIR)/%.class)
 
