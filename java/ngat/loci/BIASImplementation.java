@@ -10,7 +10,6 @@ import java.util.*;
 import ngat.fits.*;
 import ngat.loci.ccd.*;
 import ngat.message.base.*;
-import ngat.message.base.*;
 import ngat.message.ISS_INST.*;
 import ngat.util.logging.*;
 
