@@ -243,7 +243,7 @@ public class MULTRUNImplementation extends EXPOSEImplementation implements JMSCo
 				{
 					loci.error(this.getClass().getName()+
 						   ":processCommand:sendAcknowledge(DP):"+command+":"+e.toString());
-					multRunDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1203);
+					multRunDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1003);
 					multRunDone.setErrorString("sendAcknowledge(DP) failed:"+e.toString());
 					multRunDone.setSuccessful(false);
 					return multRunDone;
