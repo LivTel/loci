@@ -122,7 +122,8 @@ public class REBOOTImplementation extends HardwareImplementation implements JMSC
 	 * <li>SOFTWARE. This sends the "Shutdown" command to the CCD Flask API layer, which stops 
 	 *      the CCD Flask API layer software. It then closes the
 	 * 	server socket using the Loci close method. It then exits the Loci control software.
-	 * <li>HARDWARE. This shuts down the connection to the Loci detector and closes the
+	 * <li>HARDWARE. This sends the reboot command on to the DpRt. 
+	 *      It then shuts down the connection to the Loci detector and closes the
 	 * 	server socket using the Loci close method. It then issues a reboot
 	 * 	command to the underlying operating system, to restart the instrument computer.
 	 * <li>POWER_OFF. This closes the
@@ -146,12 +147,14 @@ public class REBOOTImplementation extends HardwareImplementation implements JMSC
 	 * @see #ccdFlaskHostname
 	 * @see #ccdFlaskPortNumber
 	 * @see #sendShutdownCommand
+	 * @see Loci#sendDpRtCommand
 	 * @see Loci#close
 	 */
 	public COMMAND_DONE processCommand(COMMAND command)
 	{
 		ngat.message.ISS_INST.REBOOT rebootCommand = (ngat.message.ISS_INST.REBOOT)command;
 		ngat.message.ISS_INST.REBOOT_DONE rebootDone = new ngat.message.ISS_INST.REBOOT_DONE(command.getId());
+		ngat.message.INST_DP.REBOOT dprtReboot = new ngat.message.INST_DP.REBOOT(command.getId());
 		ICSDRebootCommand icsdRebootCommand = null;
 		ICSDShutdownCommand icsdShutdownCommand = null;
 		LociREBOOTQuitThread quitThread = null;
@@ -183,6 +186,9 @@ public class REBOOTImplementation extends HardwareImplementation implements JMSC
 					loci.reInit();
 					break;
 				case REBOOT.LEVEL_SOFTWARE:
+					// send REBOOT to the data pipeline
+					//dprtReboot.setLevel(rebootCommand.getLevel());
+					//loci.sendDpRtCommand(dprtReboot,serverConnectionThread);
 					// send software restart onto CCD Flask API layer.
 					// send shutdown command to CCD Flask API Layer
 					//sendShutdownCommand();
@@ -195,6 +201,9 @@ public class REBOOTImplementation extends HardwareImplementation implements JMSC
 					quitThread.start();
 					break;
 				case REBOOT.LEVEL_HARDWARE:
+					// send REBOOT to the data pipeline
+					dprtReboot.setLevel(rebootCommand.getLevel());
+					loci.sendDpRtCommand(dprtReboot,serverConnectionThread);
 					loci.close(serverConnectionThread);
 					quitThread = new LociREBOOTQuitThread("quit:"+rebootCommand.getId());
 					quitThread.setLoci(loci);
@@ -210,6 +219,9 @@ public class REBOOTImplementation extends HardwareImplementation implements JMSC
 					//icsdRebootCommand.send();
 					break;
 				case REBOOT.LEVEL_POWER_OFF:
+					// send REBOOT to the data pipeline
+					dprtReboot.setLevel(rebootCommand.getLevel());
+					loci.sendDpRtCommand(dprtReboot,serverConnectionThread);
 					loci.close(serverConnectionThread);
 					quitThread = new LociREBOOTQuitThread("quit:"+rebootCommand.getId());
 					quitThread.setLoci(loci);
