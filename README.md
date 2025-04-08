@@ -70,7 +70,7 @@ Note everything after and including the '-c' is actually command line arguments 
  
 ## Java CCD Command line test tools
 
-The CCD command line programs are as shown below. Running the command without any arguments ususally gives some information on the command line arguments needed. For the below invocations we assume ${hostname} has been set appropriately (150.204.240.135 when the loci control computer is on the ARI network, and 192.168.1.x (TBD) when the loci control computer is on the LT TLAN.
+The CCD command line programs are as shown below. Running the command without any arguments ususally gives some information on the command line arguments needed. For the below invocations we assume ${hostname} has been set appropriately (150.204.240.135 when the loci control computer is on the ARI network, and 192.168.1.28 when the loci control computer is on the LT TLAN.
 
 * **java ngat.loci.ccd.GetTemperatureCommand ${hostname} 5100** Get the CCD temperature
 * **java ngat.loci.ccd.SetTemperatureCommand ${hostname} 5100 -14** Set the CCD temperature (in degrees centigrade)
@@ -121,3 +121,5 @@ loci.get_status.detector.temperature.warm.warn          =-10.0
 loci.get_status.detector.temperature.cold.warn          =-20
 loci.get_status.detector.temperature.cold.fail          =-30
 ```
+
+The master copy of loci1:/icc/bin/loci/java/loci.properties live in the repository [here](java/ngat/loci/loci1.loci.properties) and is installed on the control computer using the [loci_create_config_tarball](scripts/loci_create_config_tarball)  as described in the [images](images) directory.
