@@ -141,3 +141,17 @@ loci.focus.offset                                       = 0.0
 
 After changing the file do a level 2 REBOOT from the IcsGUI (this causes the Loci Java layer to quit, the docker container is then automatically restarted and the Loci Java layer initialisation code re-run to re-read these variables).
 
+The individual filter focus offsets are defined in the loci1:/icc/config/filter.properties file:
+
+```
+filter.SDSS-U-03.optical_thickness      =0.0
+filter.SDSS-G-03.optical_thickness      =0.0
+filter.SDSS-R-03.optical_thickness      =0.0
+filter.SDSS-I-03.optical_thickness      =0.0
+filter.SDSS-Z-03.optical_thickness      =0.0
+filter.SDSS-Y-03.optical_thickness      =0.0
+```
+
+The master copy of this file is in the [config](https://github.com/LivTel/config) repository, [loci.filter.properties](https://github.com/LivTel/config/blob/master/loci.filter.properties).
+
+Again, a Level 2 reboot from the IcsGUI is needed to re-load the configuration file after changes have been made.
