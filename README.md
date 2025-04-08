@@ -102,22 +102,22 @@ The current filter configuration (for the Loci Java layer) is defined on the Loc
 The CCD camera detector is thermo-electrically cooled by a peltier cooler. As part of Loci Java layer initialisation, the lower-level CCD control software SetTemperature end-point is invoked to set the target temperature to cool the detector to.
 
 Currently in the lab the software is configured to keep the temperature reletively warm on boot-up. The SetTemperatureCommand command line test tool can be used to cool the detector in the lab. The initial target temperature is set from the following configuration option in the loci1:/icc/bin/loci/java/loci.properties :
-'''
+```
 #
 # Loci CCD Flask API
 # loci-ctrl initialisation
 #
 loci.flask.ccd.temperature.target                       = -13
 loci.flask.ccd.cooling.enable                           = true
-'''
+```
 The target temperature is in degrees centrigrade. To change the default temperature the detector is cooled to, change the file and do a level 2 REBOOT from the IcsGUI (this causes the Loci Java layer to quit, the docker container is then automatically restarted and the Loci Java layer initialisation code re-run, which re-reads the configuration file and sets the target temperature).
 
 You may want to set the detector health and wellbeing limits in the same config file, so the IcsGUI reports (and the RCS knows) the detector temperature is 'GOOD':
 
-'''
+```
 # detector temp status
 loci.get_status.detector.temperature.warm.fail          =-5.0
 loci.get_status.detector.temperature.warm.warn          =-10.0
 loci.get_status.detector.temperature.cold.warn          =-20
 loci.get_status.detector.temperature.cold.fail          =-30
-'''
+```
