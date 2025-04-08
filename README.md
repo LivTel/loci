@@ -24,7 +24,7 @@ The **docker-compose.yaml** file is a docker compose file. This can build a dock
 
 ## Dependencies / Prerequisites
 
-* The ngat repo/package must be installed: https://github.com/LivTel/ngat .  The specific sub-packages required can be derived from the images/loci_java_layer dockerfile, currently:
+* The ngat repo/package must be installed: https://github.com/LivTel/ngat . The specific sub-packages required can be derived from the images/loci_java_layer dockerfile, currently:
   * ngat_util_logging.jar
   * ngat_util.jar
   * ngat_phase2.jar
@@ -123,3 +123,21 @@ loci.get_status.detector.temperature.cold.fail          =-30
 ```
 
 The master copy of loci1:/icc/bin/loci/java/loci.properties live in the repository [here](java/ngat/loci/loci1.loci.properties) and is installed on the control computer using the [loci_create_config_tarball](scripts/loci_create_config_tarball)  as described in the [images](images) directory.
+
+## Fold Mirror / Focus Offset configuration
+
+As with other LT instruments, when installing the instrument on the telescope the focal station the instrument is mounted on, and the instruments nominal focal offset, need calibrating and configuring for robotic use.  Again it is the loci.properties (loci1:/icc/bin/loci/java/loci.properties) file that needs editing, the master copy is located [here](java/ngat/loci/loci1.loci.properties).
+
+```
+# Mirror fold
+loci.mirror_fold_position                               =0
+```
+
+```
+# focus offset in mm from the nominal telescope (IO:O) focus
+# passed to the TCS DFOCUS command during an instrument CONFIG command
+loci.focus.offset                                       = 0.0
+```
+
+After changing the file do a level 2 REBOOT from the IcsGUI (this causes the Loci Java layer to quit, the docker container is then automatically restarted and the Loci Java layer initialisation code re-run to re-read these variables).
+
