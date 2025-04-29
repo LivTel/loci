@@ -21,7 +21,7 @@ The docker can then be installed / loaded into the local system as follows:
 
 * **ssh admin@loci1**
 * **cd images**
-* **sudo docker load -i loci_java_layer_image.tar**
+* **docker load -i loci_java_layer_image.tar**
 
 You now need to install the Loci Java layer config files before starting the docker.
 
@@ -48,7 +48,7 @@ Then install the config tarball as follows:
 
 The Loci Java layer can then be started as follows:
 
-* **sudo docker run -p 7679:7679 -p 8473:8473 --mount type=bind,src=/icc,dst=/icc --mount type=bind,src=/data,dst=/data --name=loci-java-layer -it -d --restart unless-stopped loci_java_layer_image**
+* **docker run -p 7679:7679 -p 8473:8473 --mount type=bind,src=/icc,dst=/icc --mount type=bind,src=/data,dst=/data --name=loci-java-layer -it -d --restart unless-stopped loci_java_layer_image**
 
 For this to work the Loci Java layer config files need to have been installed under **/icc** first. 
 
