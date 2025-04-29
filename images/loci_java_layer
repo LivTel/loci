@@ -1,22 +1,22 @@
 FROM openjdk:8
 # Required jars
-ADD /home/dev/bin/javalib/ngat_loci.jar ngat_loci.jar
-ADD /home/dev/bin/javalib_third_party/json-20240303.jar json-20240303.jar
-ADD /home/dev/bin/javalib/ngat_util_logging.jar ngat_util_logging.jar
-ADD /home/dev/bin/javalib/ngat_util.jar ngat_util.jar
-ADD /home/dev/bin/javalib/ngat_phase2.jar ngat_phase2.jar
-ADD /home/dev/bin/javalib/ngat_net.jar ngat_net.jar
-ADD /home/dev/bin/javalib/ngat_math.jar ngat_math.jar
-ADD /home/dev/bin/javalib/ngat_fits.jar ngat_fits.jar
-ADD /home/dev/bin/javalib/ngat_flask.jar ngat_flask.jar
-ADD /home/dev/bin/javalib/ngat_message_iss_inst.jar ngat_message_iss_inst.jar
-ADD /home/dev/bin/javalib/ngat_message_inst_dp.jar ngat_message_inst_dp.jar
-ADD /home/dev/bin/javalib/ngat_message_base.jar ngat_message_base.jar
+ADD docker/ngat_loci.jar ngat_loci.jar
+ADD docker/json-20240303.jar json-20240303.jar
+ADD docker/ngat_util_logging.jar ngat_util_logging.jar
+ADD docker/ngat_util.jar ngat_util.jar
+ADD docker/ngat_phase2.jar ngat_phase2.jar
+ADD docker/ngat_net.jar ngat_net.jar
+ADD docker/ngat_math.jar ngat_math.jar
+ADD docker/ngat_fits.jar ngat_fits.jar
+ADD docker/ngat_flask.jar ngat_flask.jar
+ADD docker/ngat_message_iss_inst.jar ngat_message_iss_inst.jar
+ADD docker/ngat_message_inst_dp.jar ngat_message_inst_dp.jar
+ADD docker/ngat_message_base.jar ngat_message_base.jar
 #
 # Shared libraries
 # Note these should be built from source, this is really dodgy
 #
-ADD /home/dev/bin/lib/x86_64-linux/libngatutil.so libngatutil.so 
+ADD docker/libngatutil.so libngatutil.so 
 #
 #
 # EXPOSE ports

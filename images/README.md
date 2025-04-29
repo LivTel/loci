@@ -9,7 +9,8 @@ This directory contains a Dockerfile for building a Loci Java layer docker conta
 To build a docker container do the following (on an LT development machine, where the loci software repository is installed at /home/dev/src/loci) :
 
 * **cd ~dev/src/loci/images** (i.e. this directory)
-* **sudo docker build -f loci_java_layer -t loci_java_layer_image /** Build the docker container from the **loci_java_layer** file.
+* **./provision_loci** Run the provisioning script, which copies the Java libraries from /home/dev/bin/javalib, and the C libraries from /home/dev/bin/lib/x86_64-linux/, into a created **docker** directory tree (created in the images directory). This allows us to use a local context for the docker build.
+* **docker build -f loci_java_layer -t loci_java_layer_image .** Build the docker container from the **loci_java_layer** file.
 * **docker save -o loci_java_layer_image.tar loci_java_layer_image** Save the constructed docker container into the **loci_java_layer_image.tar** tarball.
 
 This saved docker tarball can then be copied to loci1 (the Loci control computer) as follows:

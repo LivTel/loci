@@ -1,0 +1,19 @@
+#!/bin/tcsh
+set current_directory = `pwd`
+set oss_directory = `dirname ${current_directory}`
+mkdir -p docker/
+# javalib
+cp /home/dev/bin/javalib/ngat_loci.jar docker/
+cp /home/dev/bin/javalib_third_party/json-20240303.jar docker/
+cp /home/dev/bin/javalib/ngat_util_logging.jar docker/
+cp /home/dev/bin/javalib/ngat_util.jar docker/
+cp /home/dev/bin/javalib/ngat_phase2.jar docker/
+cp /home/dev/bin/javalib/ngat_net.jar docker/
+cp /home/dev/bin/javalib/ngat_math.jar docker/
+cp /home/dev/bin/javalib/ngat_fits.jar docker/
+cp /home/dev/bin/javalib/ngat_flask.jar docker/
+cp /home/dev/bin/javalib/ngat_message_iss_inst.jar docker/
+cp /home/dev/bin/javalib/ngat_message_inst_dp.jar docker/
+cp /home/dev/bin/javalib/ngat_message_base.jar docker/
+# Shared libraries
+cp /home/dev/bin/lib/x86_64-linux/libngatutil.so docker/
