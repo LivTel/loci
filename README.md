@@ -10,6 +10,10 @@ The lower-level CCD control software API and filter wheel control API are provid
 
 https://gitlab.services.newrobotictelescope.org/nrt-crew/ljmu/loci-ctrl/
 
+The low level software uses a cloud-based filename server to generate unique LT filenames. The code for that is here:
+
+https://gitlab.services.newrobotictelescope.org/nrt-crew/ljmu/filename-server/
+
 Current details for the test system in the lab are in LT wikiword: LOCIControlComputer
 
 ## Directory Structure
