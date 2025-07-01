@@ -42,5 +42,5 @@ All the command-line test routines have a '--help' option with details on the op
 
 *  **set hostname = "150.204.240.135"**
 
-*  **python3 test_filename_server.py --ip_address ${hostname} --port_number 80 --instrument <name/code> --exposure < exposurecode> --multrun <start|next> --extension <fits>** 
+*  **```python3 test_filename_server.py --ip_address ${hostname} --port_number 3000 --instrument <name/code> --exposure < exposurecode> --multrun <start|next> --extension <fits>```** 
 
