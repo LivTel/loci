@@ -21,6 +21,7 @@ Current details for the test system in the lab are in LT wikiword: LOCIControlCo
 * **images** This contains a Dockerfile for building a Loci Java layer docker container. Rather than deploying the software as a series of jar's in a tarball, we create a docker container and export that to the control computer.
 * **java** This contains the source code for the Liverpool Telescope robotic layer, which receives commands from the LT robotic control system.
 * **scripts** This contains some shell scripts. The **loci_create_config_tarball** creates a configuration file tarball, which can be deployed to the control computer to provide configuration files for the Loci Java layer docker container.
+* **c/test** This contains the source code for some low level test programs that use the Andor C SDK API to talk to the camera head.
 
 The **Makefile.common** file is included in Makefile's to provide common root directory information.
 
