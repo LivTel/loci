@@ -254,10 +254,10 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 					return false;
 				}
 				// comment
-				commentString = status.getProperty("loci.fits.value.comment."+keyword);
+				commentString = status.getProperty("loci.fits.comment."+keyword);
 				// comment can be null if no comment exists
 				// units
-				unitsString = status.getProperty("loci.fits.value.units."+keyword);
+				unitsString = status.getProperty("loci.fits.units."+keyword);
 				// comment can be null if no units exist
 				// Add FITS header
 				try
