@@ -13,7 +13,7 @@ LDFLAGS		= -L$(LT_LIB_HOME) $(ANDOR_LDFLAGS)
 #-l$(LIBNAME) -lcfitsio $(TIMELIB) $(SOCKETLIB) -lm -lc 
 DOCFLAGS 	= -static
 
-SRCS 		= test_andor_readout_speeds.c
+SRCS 		= test_andor_readout_speeds.c test_andor_preamp_gains.c
 OBJS 		= $(SRCS:%.c=%.o)
 PROGS 		= $(SRCS:%.c=$(BINDIR)/%)
 DOCS 		= $(SRCS:%.c=$(DOCSDIR)/%.html)
