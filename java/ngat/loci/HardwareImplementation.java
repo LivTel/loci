@@ -411,7 +411,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 			filterId = status.getFilterIdName(filterName);
 			loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+
 				 ":setFilterWheelFitsHeaders:Current filter Id is:"+filterId);
-			addFitsHeader("FILTER1",filterId,"The filter wheel filter id.",null);
+			addFitsHeader("FILTERI1",filterId,"The filter wheel filter id.",null);
 		}
 		catch(Exception e)
 		{
