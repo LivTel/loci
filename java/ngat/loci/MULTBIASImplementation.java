@@ -149,7 +149,8 @@ public class MULTBIASImplementation extends CALIBRATEImplementation implements J
 		{
 			// setup per-frame FITS headers
 			if(setPerFrameFitsHeaders(multBiasCommand,multBiasDone,FitsHeaderDefaults.OBSTYPE_VALUE_BIAS,0,
-						  multBiasCommand.getNumberExposures(),index+1) == false)
+						  multBiasCommand.getNumberExposures(),index+1,
+						  status.getConfigBinningX()) == false)
 				return multBiasDone;
 			// update ISS FITS headers
 			if(getFitsHeadersFromISS(multBiasCommand,multBiasDone) == false)
