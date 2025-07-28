@@ -438,13 +438,16 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	 * @param exposureLength The length of the exposure in milliseconds.
 	 * @param exposureCount The number of exposures in the MULTRUN.
 	 * @param exposureIndex Which exposure in the MULTRUN we are currently doing (1..exposureCount).
+	 * @param binning The binning factor the detector was last configured with. Used to modify the CCDSCALE FITS header.
 	 * @return The routine returns a boolean to indicate whether the operation was completed
 	 *  	successfully.
 	 * @see #addFitsHeader
 	 */
 	public boolean setPerFrameFitsHeaders(COMMAND command,COMMAND_DONE commandDone,String obsType,
-					      int exposureLength,int exposureCount,int exposureIndex)
+					      int exposureLength,int exposureCount,int exposureIndex,int binning)
 	{
+		double ccdScaleUnbinned,ccdScale;
+		
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			 ":setPerFrameFitsHeaders:Started.");
 		try
@@ -455,6 +458,11 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 			addFitsHeader("EXPNUM",exposureIndex,"Number of exposure within Multrun",null);
 			// EXPTOTAL
 			addFitsHeader("EXPTOTAL",exposureCount,"Total number of exposures within Multrun",null);
+			// CCDSCALE
+			// get unbinned value from properties file
+			ccdScaleUnbinned = status.getPropertyDouble("loci.fits.value.CCDSCALE");
+			ccdScale = ccdScaleUnbinned / ((double)binning);
+			addFitsHeader("CCDSCALE",ccdScale,"Plate scale in arcsec / binned pixels.","arcsec/binned pixel");
 		}
 		catch(Exception e)
 		{
