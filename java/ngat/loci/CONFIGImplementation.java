@@ -234,6 +234,8 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 	// Store name of configuration used in status object
 	// This is queried when saving FITS headers to get the CONFNAME value.
 		status.setConfigName(configName);
+	// Store the config binning so we can use it to modify the plate scale when saving FITS headers
+		status.setConfigBinning(config.getDetector(0).getXBin(),config.getDetector(0).getYBin());
 	// setup return object.
 		configDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_NO_ERROR);
 		configDone.setErrorString("");
