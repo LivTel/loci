@@ -461,7 +461,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 			// CCDSCALE
 			// get unbinned value from properties file
 			ccdScaleUnbinned = status.getPropertyDouble("loci.fits.value.CCDSCALE");
-			ccdScale = ccdScaleUnbinned / ((double)binning);
+			ccdScale = ccdScaleUnbinned * ((double)binning);
 			addFitsHeader("CCDSCALE",ccdScale,"Plate scale in arcsec / binned pixels.","arcsec/binned pixel");
 		}
 		catch(Exception e)
