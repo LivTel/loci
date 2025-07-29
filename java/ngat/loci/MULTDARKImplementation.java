@@ -152,7 +152,8 @@ public class MULTDARKImplementation extends CALIBRATEImplementation implements J
 			// setup per-frame FITS headers
 			if(setPerFrameFitsHeaders(multDarkCommand,multDarkDone,FitsHeaderDefaults.OBSTYPE_VALUE_DARK,
 						  multDarkCommand.getExposureTime(),
-						  multDarkCommand.getNumberExposures(),index+1) == false)
+						  multDarkCommand.getNumberExposures(),index+1,
+						  status.getConfigBinningX()) == false)
 				return multDarkDone;
 			// update ISS FITS headers
 			if(getFitsHeadersFromISS(multDarkCommand,multDarkDone) == false)

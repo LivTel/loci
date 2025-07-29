@@ -168,7 +168,8 @@ public class MULTRUNImplementation extends EXPOSEImplementation implements JMSCo
 			// setup per-frame FITS headers
 			if(setPerFrameFitsHeaders(multRunCommand,multRunDone,obsType,
 						  multRunCommand.getExposureTime(),
-						  multRunCommand.getNumberExposures(),index+1) == false)
+						  multRunCommand.getNumberExposures(),index+1,
+						  status.getConfigBinningX()) == false)
 				return multRunDone;
 			// update ISS FITS headers
 			if(getFitsHeadersFromISS(multRunCommand,multRunDone) == false)

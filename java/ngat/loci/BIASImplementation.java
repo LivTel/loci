@@ -129,7 +129,8 @@ public class BIASImplementation extends CALIBRATEImplementation implements JMSCo
 			return biasDone;
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:Setting per-frame FITS headers.");
-		if(setPerFrameFitsHeaders(biasCommand,biasDone,FitsHeaderDefaults.OBSTYPE_VALUE_BIAS,0,1,1) == false)
+		if(setPerFrameFitsHeaders(biasCommand,biasDone,FitsHeaderDefaults.OBSTYPE_VALUE_BIAS,0,1,1,
+					  status.getConfigBinningX()) == false)
 				return biasDone;
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:getting FITS headers from ISS.");

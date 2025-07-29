@@ -136,7 +136,15 @@ public class LociStatus
 	 * we get an error about setup not being complete, rather than an error about NULL FITS values.
 	 */
 	private String configName = "UNKNOWN";
-
+	/**
+	 * The last X binning value selected when configuring the detector using the CONFIG command.
+	 */
+	private int configBinningX = 2;
+	/**
+	 * The last Ybinning value selected when configuring the detector using the CONFIG command.
+	 */
+	private int configBinningY = 2;
+	
 	/**
 	 * Default constructor. Initialises the properties.
 	 * @see #properties
@@ -476,7 +484,40 @@ public class LociStatus
 	{
 		return configName;
 	}
-
+	
+	/**
+	 * Method to set the binning factors last used to successfully configure the Loci camera.
+	 * @param xBin An integer, the last X binning factor.
+	 * @param yBin An integer, the last Y binning factor.
+	 * @see #configBinningX
+	 * @see #configBinningY
+	 */
+	public synchronized void setConfigBinning(int xBin,int yBin)
+	{
+		configBinningX = xBin;
+		configBinningY = yBin;
+	}
+	
+	/**
+	 * Method to get the last X binning factor used to successfully configure the Loci camera.
+	 * @return An integer, the last X binning factor.
+	 * @see #configBinningX
+	 */
+	public synchronized int getConfigBinningX()
+	{
+		return configBinningX;
+	}
+	
+	/**
+	 * Method to get the last Y binning factor used to successfully configure the Loci camera.
+	 * @return An integer, the last Y binning factor.
+	 * @see #configBinningY
+	 */
+	public synchronized int getConfigBinningY()
+	{
+		return configBinningY;
+	}
+	
 	/**
 	 * Method to return whether the loaded properties contain the specified keyword.
 	 * Calls the proprties object containsKey method. Note assumes the properties object has been initialised.

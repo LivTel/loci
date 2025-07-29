@@ -132,7 +132,7 @@ public class DARKImplementation extends CALIBRATEImplementation implements JMSCo
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:Setting per-frame FITS headers.");
 		if(setPerFrameFitsHeaders(darkCommand,darkDone,FitsHeaderDefaults.OBSTYPE_VALUE_DARK,
-					  darkCommand.getExposureTime(),1,1) == false)
+					  darkCommand.getExposureTime(),1,1,status.getConfigBinningX()) == false)
 				return darkDone;
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,this.getClass().getName()+
 			   ":processCommand:getting FITS headers from ISS.");
