@@ -241,4 +241,39 @@ public class CALIBRATEImplementation extends HardwareImplementation implements J
 		}
 		return true;
 	}
+	
+	/**
+	 * This routine calls the Real Time Data Pipeline to create a master flat frame, from a series of 
+	 * calibration flat field FITS images in a directory.
+	 * It sends the directory to the Data Pipeline and waits for a result. If an error occurs the done
+	 * object is filled in and the method returns. If it succeeds and the done object is of class 
+	 * MAKE_MASTER_FLAT_DONE, the data returned from the Data Pipeline is copied into the done object.
+	 * @param command The command being implemented that made this call to the DP(RT). This is used
+	 * 	for error logging.
+	 * @param done A COMMAND_DONE subclass specific to the command being implemented. If an
+	 * 	error occurs the relevant fields are filled in with the error.
+	 * @param dirname The directory of the FITS images to be processed by the Data Pipeline(Real Time).
+	 * @return The routine returns a boolean to indicate whether the operation was completed
+	 *  	successfully.
+	 * @see Loci#sendDpRtCommand
+	 */
+	public boolean makeMasterFlat(COMMAND command,COMMAND_DONE done,String dirname)
+	{
+		MAKE_MASTER_FLAT makeMasterFlatCommand = null;
+		INST_TO_DP_DONE instToDPDone = null;
+
+		makeMasterFlatCommand = new MAKE_MASTER_FLAT(command.getId());
+		makeMasterFlatCommand.setDirname(dirname);
+		instToDPDone = loci.sendDpRtCommand(makeMasterFlatCommand,serverConnectionThread);
+		if(instToDPDone.getSuccessful() == false)
+		{
+			loci.error(this.getClass().getName()+":makeMasterFlat:"+
+				command+":"+instToDPDone.getErrorNum()+":"+instToDPDone.getErrorString());
+			done.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+502);
+			done.setErrorString(instToDPDone.getErrorString());
+			done.setSuccessful(false);
+			return false;
+		}
+		return true;
+	}
 }
