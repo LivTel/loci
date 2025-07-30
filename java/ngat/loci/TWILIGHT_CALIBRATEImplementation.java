@@ -4,6 +4,7 @@ package ngat.loci;
 
 import java.io.*;
 import java.lang.*;
+import java.net.*;
 import java.util.*;
 
 import ngat.fits.*;
@@ -405,7 +406,6 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		if(sendBasicAck(twilightCalibrateCommand,twilightCalibrateDone,makeFlatAckTime) == false)
 			return twilightCalibrateDone;
 	// Call pipeline to create master flat.
-		diddly this config does not exists;
 		directoryString = status.getProperty("loci.file.fits.path");
 		if(directoryString.endsWith(System.getProperty("file.separator")) == false)
 			directoryString = directoryString.concat(System.getProperty("file.separator"));
@@ -1042,6 +1042,9 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	protected boolean doConfig(TWILIGHT_CALIBRATE twilightCalibrateCommand,
 				   TWILIGHT_CALIBRATE_DONE twilightCalibrateDone,int bin,String filter)
 	{
+		String filterIdName = null;
+		float focusOffset,filterFocusOffset;
+
 		try
 		{
 			// send configuration to the camera
@@ -1064,10 +1067,44 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	// test abort
 		if(testAbort(twilightCalibrateCommand,twilightCalibrateDone) == true)
 			return false;
-	// Issue ISS OFFSET_FOCUS_CONTROL commmand based on the optical thickness of the filter
+	// Get overall instrument focus offset
 		try
 		{
-			setFocusOffset(twilightCalibrateCommand.getId(),filter);
+			focusOffset = status.getPropertyFloat("loci.focus.offset");
+			loci.log(Logging.VERBOSITY_TERSE,"Command:"+
+				 twilightCalibrateCommand.getClass().getName()+":instrument focus offset = "+focusOffset+".");
+		}
+		catch(NumberFormatException e)
+		{
+			loci.error(this.getClass().getName()+":processCommand:"+twilightCalibrateCommand,e);
+			twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2323);
+			twilightCalibrateDone.setErrorString(e.toString());
+			twilightCalibrateDone.setSuccessful(false);
+			return false;
+		}
+	// Get filter focus offset
+		try
+		{
+			filterIdName = status.getFilterIdName(filter);
+			filterFocusOffset = (float)(status.getFilterIdOpticalThickness(filterIdName));
+			loci.log(Logging.VERBOSITY_TERSE,"Command:"+
+			   twilightCalibrateCommand.getClass().getName()+":filter focus offset = "+filterFocusOffset+".");
+			focusOffset += filterFocusOffset;
+			loci.log(Logging.VERBOSITY_VERY_TERSE,"Command:"+
+			      twilightCalibrateCommand.getClass().getName()+":overall focus offset = "+focusOffset+".");
+		}
+		catch(NumberFormatException e)
+		{
+			loci.error(this.getClass().getName()+":processCommand:"+twilightCalibrateCommand,e);
+			twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2324);
+			twilightCalibrateDone.setErrorString(e.toString());
+			twilightCalibrateDone.setSuccessful(false);
+			return false;
+		}
+	// actually issue ISS OFFSET_FOCUS commmand to telescope/ISS. 
+		try
+		{
+			setFocusOffset(twilightCalibrateCommand.getId(),focusOffset,twilightCalibrateDone);
 		}
 		catch(Exception e)
 		{
@@ -1124,7 +1161,6 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	protected void sendSetImageDimensionsCommand(int xBin,int yBin) throws UnknownHostException, Exception
 	{
 		SetImageDimensionsCommand command = null;
-		Window window = null;
 		
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendSetImageDimensionsCommand:started.");
 		// get CCD Flask API connection data
@@ -1298,7 +1334,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 			if(setFitsHeaders(twilightCalibrateCommand,twilightCalibrateDone) == false)
 				return false;
 			if(setFilterWheelFitsHeaders(twilightCalibrateCommand,twilightCalibrateDone) == false)
-				return twilightCalibrate;
+				return false;
 			if(getFitsHeadersFromISS(twilightCalibrateCommand,twilightCalibrateDone) == false)
 				return false;
 			if(testAbort(twilightCalibrateCommand,twilightCalibrateDone) == true)
@@ -1310,14 +1346,13 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 				 ":Attempting exposure: length:"+exposureLength+".");
 			// setup per-frame FITS headers
 			if(setPerFrameFitsHeaders(twilightCalibrateCommand,twilightCalibrateDone,
-						  FitsHeaderDefaults.OBSTYPE_VALUE_SKYFLAT,
+						  FitsHeaderDefaults.OBSTYPE_VALUE_SKY_FLAT,
 						  exposureLength,-1,exposureIndex) == false)
-				return twilightCalibrateDone;
+				return false;
 		// do exposure
 			try
 			{
-				// really we want a Take a temporary filename option here...
-				filename = sendTakeExposureCommand(exposureLength,(exposureIndex == 0),"skyflat");
+				filename = sendTakeExposureCommand(exposureLength);
 				exposureIndex++;
 			}
 			catch(CCDLibraryNativeException e)
@@ -1392,6 +1427,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 				 ":peak counts:"+twilightCalibrateDone.getPeakCounts()+
 				 ":frame state:"+FRAME_STATE_NAME_LIST[frameState]+".");
 		// if the frame was good, rename it
+			// diddly
 			//if(frameState == FRAME_STATE_OK)
 			//{
 			// raw frame
@@ -1582,6 +1618,82 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		return true;
 	}
 
+	/**
+	 * Send a 'takeExposure' command to the loci-ctrl CCD Flask API.
+	 * <ul>
+	 * <li>We call getCCDFlaskConnectionData to setup ccdFlaskHostname and ccdFlaskPortNumber.
+	 * <li>We retrieve the temporary filename to use from the "loci.twilight_calibrate.file.tmp" status property.
+	 * <li>We setup and configure an instance of TakeExposureCommand, 
+	 *     with connection details, exposure length, a temporary filename and "sky-flat" exposure type.
+	 * <li>We run the instance of TakeExposureCommand.
+	 * <li>We check whether a run exception occured, and throw it as an exception if so.
+	 * <li>We log the return status and message.
+	 * <li>We check whether the TakeExposureCommand return status was Success, and throw an exception if it
+	 *     returned a failure.
+	 * <li>We return the generated exposure filename.
+	 * </ul>
+	 * @param exposureLength The dark exposure length in milliseconds.
+	 * @return The generated FITS filename is returned.
+	 * @see #getCCDFlaskConnectionData
+	 * @see #status
+	 * @see #ccdFlaskHostname
+	 * @see #ccdFlaskPortNumber
+	 * @see ngat.loci.ccd.TakeExposureCommand
+	 * @exception UnknownHostException Thrown if the address passed to TakeExposureCommand.setAddress is not a 
+	 *            valid host.
+	 * @exception Exception Thrown if the TakeExposureCommand generates a run exception, or the return
+	 *            status is not success.
+	 */
+	protected String sendTakeExposureCommand(int exposureLength) throws UnknownHostException, Exception
+	{
+		TakeExposureCommand takeExposureCommand = null;
+		String temporaryFilename = null;
+		double exposureLengthS;
+		
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeExposureCommand:started with exposure length "+
+			 exposureLength+" ms.");
+		// get CCD Flask API connection data
+		getCCDFlaskConnectionData();
+		// get the temporary filename
+		temporaryFilename = status.getProperty("loci.twilight_calibrate.file.tmp");
+		// convert exposure length from milliseconds to decimal seconds
+		exposureLengthS = ((double)exposureLength)/((double)LociConstants.MILLISECONDS_PER_SECOND);
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeExposureCommand:Exposure length: "+
+			 exposureLengthS+" seconds.");
+		// setup TakeExposureCommand
+		takeExposureCommand = new TakeExposureCommand();
+		takeExposureCommand.setAddress(ccdFlaskHostname);
+		takeExposureCommand.setPortNumber(ccdFlaskPortNumber);
+		takeExposureCommand.setExposureLength(exposureLengthS);
+		takeExposureCommand.setTemporaryFile(temporaryFilename);
+		takeExposureCommand.setExposureType("sky-flat");
+		// run command
+		takeExposureCommand.run();
+		// check reply
+		if(takeExposureCommand.getRunException() != null)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":sendTakeExposureCommand:Failed to take exposure:",
+					    takeExposureCommand.getRunException());
+		}
+		loci.log(Logging.VERBOSITY_VERBOSE,
+			 "sendTakeExposureCommand:Take Exposure Command Finished with status: "+
+			 takeExposureCommand.getReturnStatus()+
+			 " and filename:"+takeExposureCommand.getFilename()+
+			 " and message:"+takeExposureCommand.getMessage()+".");
+		if(takeExposureCommand.isReturnStatusSuccess() == false)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":sendTakeExposureCommand:Take Exposure Command failed with status: "+
+					    takeExposureCommand.getReturnStatus()+
+					    " and filename:"+takeExposureCommand.getFilename()+
+					    " and message:"+takeExposureCommand.getMessage()+".");
+		}
+		filename = takeExposureCommand.getFilename();
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeExposureCommand:finished with filename:"+filename);
+		return filename;
+	}
+	
 	/**
 	 * Method to send an instance of ACK back to the client. This stops the client timing out, whilst we
 	 * work out what calibration to attempt next.
