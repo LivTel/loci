@@ -294,7 +294,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * @param command The command instance we are implementing.
 	 * @return An instance of ACK with the timeToComplete set.
 	 * @see ngat.message.base.ACK#setTimeToComplete
-	 * @see OTCPServerConnectionThread#getDefaultAcknowledgeTime
+	 * @see LociTCPServerConnectionThread#getDefaultAcknowledgeTime
 	 */
 	public ACK calculateAcknowledgeTime(COMMAND command)
 	{
@@ -338,7 +338,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * @see #exposureIndex
 	 * @see ngat.loci.HardwareImplementation#moveFold
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
-	 * @see ngat.lociCALIBRATEImplementation#makeMasterFlat
+	 * @see ngat.loci.CALIBRATEImplementation#makeMasterFlat
 	 */
 	public COMMAND_DONE processCommand(COMMAND command)
 	{
@@ -1329,33 +1329,33 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		doneFrame = false;
 		while(doneFrame == false)
 		{
-		// setup fits headers
-			clearFitsHeaders();
-			if(setFitsHeaders(twilightCalibrateCommand,twilightCalibrateDone) == false)
-				return false;
-			if(setFilterWheelFitsHeaders(twilightCalibrateCommand,twilightCalibrateDone) == false)
-				return false;
-			if(getFitsHeadersFromISS(twilightCalibrateCommand,twilightCalibrateDone) == false)
-				return false;
-			if(testAbort(twilightCalibrateCommand,twilightCalibrateDone) == true)
-				return false;
-		// log exposure attempt
-			loci.log(Logging.VERBOSITY_VERBOSE,"Command:"+twilightCalibrateCommand.getId()+
-				 ":doFrame:"+"bin:"+bin+
-				 ":filter:"+filter+
-				 ":Attempting exposure: length:"+exposureLength+".");
-			// setup per-frame FITS headers
-			if(setPerFrameFitsHeaders(twilightCalibrateCommand,twilightCalibrateDone,
-						  FitsHeaderDefaults.OBSTYPE_VALUE_SKY_FLAT,
-						  exposureLength,-1,exposureIndex) == false)
-				return false;
-		// do exposure
 			try
 			{
+				// setup fits headers
+				clearFitsHeaders();
+				if(setFitsHeaders(twilightCalibrateCommand,twilightCalibrateDone) == false)
+					return false;
+				if(setFilterWheelFitsHeaders(twilightCalibrateCommand,twilightCalibrateDone) == false)
+					return false;
+				if(getFitsHeadersFromISS(twilightCalibrateCommand,twilightCalibrateDone) == false)
+					return false;
+				if(testAbort(twilightCalibrateCommand,twilightCalibrateDone) == true)
+					return false;
+				// log exposure attempt
+				loci.log(Logging.VERBOSITY_VERBOSE,"Command:"+twilightCalibrateCommand.getId()+
+					 ":doFrame:"+"bin:"+bin+
+					 ":filter:"+filter+
+					 ":Attempting exposure: length:"+exposureLength+".");
+				// setup per-frame FITS headers
+				if(setPerFrameFitsHeaders(twilightCalibrateCommand,twilightCalibrateDone,
+							  FitsHeaderDefaults.OBSTYPE_VALUE_SKY_FLAT,
+							  exposureLength,-1,exposureIndex,bin) == false)
+					return false;
+				// do exposure
 				filename = sendTakeExposureCommand(exposureLength);
 				exposureIndex++;
 			}
-			catch(CCDLibraryNativeException e)
+			catch(Exception e)
 			{
 				String errorString = new String(twilightCalibrateCommand.getId()+
 					":doFrame:Doing frame of length "+exposureLength+" failed:");
@@ -1647,6 +1647,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	protected String sendTakeExposureCommand(int exposureLength) throws UnknownHostException, Exception
 	{
 		TakeExposureCommand takeExposureCommand = null;
+		String filename = null;
 		String temporaryFilename = null;
 		double exposureLengthS;
 		
