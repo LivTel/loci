@@ -502,7 +502,6 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 			propertyName = LIST_KEY_STRING+"max_exposure_time";
 			maxExposureLength = status.getPropertyInteger(propertyName);
 		// temporary FITS filename
-		// This configuration cannot be used at the moment due to limitations in the loci camera API / filename API
 			propertyName = LIST_KEY_STRING+"file.tmp";
 			temporaryFITSFilename = status.getProperty(propertyName);
 		// saved state filename
@@ -1319,6 +1318,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	protected boolean doFrame(TWILIGHT_CALIBRATE twilightCalibrateCommand,
 				  TWILIGHT_CALIBRATE_DONE twilightCalibrateDone,int bin,String filter)
 	{
+		File temporaryFile = null;
 		String filename = null;
 		String reducedFilename = null;
 		long now;
@@ -1427,24 +1427,24 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 				 ":peak counts:"+twilightCalibrateDone.getPeakCounts()+
 				 ":frame state:"+FRAME_STATE_NAME_LIST[frameState]+".");
 		// if the frame was good, rename it
-			// diddly
-			//if(frameState == FRAME_STATE_OK)
-			//{
+			if(frameState == FRAME_STATE_OK)
+			{
 			// raw frame
-				//temporaryFile = new File(temporaryFITSFilename);
+				temporaryFile = new File(temporaryFITSFilename);
 			// does the temprary file exist?
-				//if(temporaryFile.exists() == false)
-				//{
-				//	String errorString = new String(twilightCalibrateCommand.getId()+
-				//				":File does not exist:"+temporaryFITSFilename);
+				if(temporaryFile.exists() == false)
+				{
+					String errorString = new String(twilightCalibrateCommand.getId()+
+								":File does not exist:"+temporaryFITSFilename);
 
-				//	loci.error(this.getClass().getName()+
-				//		":doFrame:"+errorString);
-				//	twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2314);
-				//	twilightCalibrateDone.setErrorString(errorString);
-				//	twilightCalibrateDone.setSuccessful(false);
-				//	return false;
-				//}
+					loci.error(this.getClass().getName()+
+						":doFrame:"+errorString);
+					twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2314);
+					twilightCalibrateDone.setErrorString(errorString);
+					twilightCalibrateDone.setSuccessful(false);
+					return false;
+				}
+			// diddly
 			// get a filename to store frame in
 				//oFilename.nextRunNumber();
 				//filename = oFilename.getFilename();
@@ -1521,7 +1521,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 				//	      ":filter:"+filter+
 				//	      ":Exposure DpRt frame rename:renamed "+temporaryFile+" to "+newFile+".");
 				//}// end if temporary file exists
-			//}// end if frameState was OK
+			}// end if frameState was OK
 		// Test abort status.
 			if(testAbort(twilightCalibrateCommand,twilightCalibrateDone) == true)
 				return false;
@@ -1622,9 +1622,8 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * Send a 'takeExposure' command to the loci-ctrl CCD Flask API.
 	 * <ul>
 	 * <li>We call getCCDFlaskConnectionData to setup ccdFlaskHostname and ccdFlaskPortNumber.
-	 * <li>We retrieve the temporary filename to use from the "loci.twilight_calibrate.file.tmp" status property.
 	 * <li>We setup and configure an instance of TakeExposureCommand, 
-	 *     with connection details, exposure length, a temporary filename and "sky-flat" exposure type.
+	 *     with connection details, exposure length, a temporary FITS filename and "sky-flat" exposure type.
 	 * <li>We run the instance of TakeExposureCommand.
 	 * <li>We check whether a run exception occured, and throw it as an exception if so.
 	 * <li>We log the return status and message.
@@ -1638,6 +1637,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * @see #status
 	 * @see #ccdFlaskHostname
 	 * @see #ccdFlaskPortNumber
+	 * @see #temporaryFITSFilename
 	 * @see ngat.loci.ccd.TakeExposureCommand
 	 * @exception UnknownHostException Thrown if the address passed to TakeExposureCommand.setAddress is not a 
 	 *            valid host.
@@ -1648,15 +1648,12 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	{
 		TakeExposureCommand takeExposureCommand = null;
 		String filename = null;
-		String temporaryFilename = null;
 		double exposureLengthS;
 		
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeExposureCommand:started with exposure length "+
 			 exposureLength+" ms.");
 		// get CCD Flask API connection data
 		getCCDFlaskConnectionData();
-		// get the temporary filename
-		temporaryFilename = status.getProperty("loci.twilight_calibrate.file.tmp");
 		// convert exposure length from milliseconds to decimal seconds
 		exposureLengthS = ((double)exposureLength)/((double)LociConstants.MILLISECONDS_PER_SECOND);
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeExposureCommand:Exposure length: "+
@@ -1666,7 +1663,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		takeExposureCommand.setAddress(ccdFlaskHostname);
 		takeExposureCommand.setPortNumber(ccdFlaskPortNumber);
 		takeExposureCommand.setExposureLength(exposureLengthS);
-		takeExposureCommand.setTemporaryFile(temporaryFilename);
+		takeExposureCommand.setTemporaryFile(temporaryFITSFilename);
 		takeExposureCommand.setExposureType("sky-flat");
 		// run command
 		takeExposureCommand.run();
