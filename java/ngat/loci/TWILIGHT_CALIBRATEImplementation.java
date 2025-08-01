@@ -206,6 +206,10 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 */
 	private int timeOfNight = TIME_OF_NIGHT_UNKNOWN;
 	/**
+	 * The directory FITS images are stored in, retrieved from the "loci.file.fits.path" property.
+	 */
+	protected String fitsDirectoryString = null;
+	/**
 	 * Filename used to save FITS frames to, until they are determined to contain valid data
 	 * (the counts in them are within limits).
 	 */
@@ -256,7 +260,18 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * equal to the offsetList size at the end of the offset list loop.
 	 */
 	private int calibrationFrameCount = 0;
+	/**
+	 * A counter keeping track of the number of exposures taken.
+	 * Not all of these might have been "good" (FRAME_STATE_OK).
+	 */
 	private int exposureIndex = 0;
+	/**
+	 * A multrun state flag, for the first successful flat produced by the twilight calibration process this should be
+	 * FitsFilenameServer.MULTRUN_FLAG_START (which when passed to the FitsFilenameServer will cause it to start a
+	 * new Flat Multrun when returning us a Flat FITS filename), and for subsequent successful flats
+	 * produced by the twilight calibration process this should be FitsFilenameServer.MULTRUN_FLAG_NEXT
+	 */
+	protected String multrunStateFlag = FitsFilenameServer.MULTRUN_FLAG_START;
 	
 	/**
 	 * Constructor.
@@ -313,7 +328,6 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * <li><b>loadProperties</b> is called to get configuration data from the properties.
 	 * <li><b>addSavedStateToCalibration</b> is called, which finds the correct last time for each
 	 * 	calibration in the list and sets the relevant field.
-	 * <li>The FITS headers are cleared, and a the MULTRUN number is incremented.
 	 * <li>The fold mirror is moved to the correct location using <b>moveFold</b>.
 	 * <li>For each calibration, we do the following:
 	 *      <ul>
@@ -336,6 +350,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * @see #doCalibration
 	 * @see #frameOverhead
 	 * @see #exposureIndex
+	 * @see #multrunStateFlag
 	 * @see ngat.loci.HardwareImplementation#moveFold
 	 * @see ngat.loci.HardwareImplementation#clearFitsHeaders
 	 * @see ngat.loci.CALIBRATEImplementation#makeMasterFlat
@@ -346,7 +361,6 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		TWILIGHT_CALIBRATE_DONE twilightCalibrateDone = new TWILIGHT_CALIBRATE_DONE(command.getId());
 		TWILIGHT_CALIBRATECalibration calibration = null;
 		int calibrationListIndex = 0;
-		String directoryString = null;
 		int makeFlatAckTime;
 
 		twilightCalibrateDone.setMeanCounts(0.0f);
@@ -360,6 +374,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		status.setExposureCount(-1);
 		status.setExposureNumber(0);
 		exposureIndex = 0;
+		multrunStateFlag = FitsFilenameServer.MULTRUN_FLAG_START;
 	// match saved state to calibration list (put last time into calibration list)
 		if(addSavedStateToCalibration(twilightCalibrateCommand,twilightCalibrateDone) == false)
 			return twilightCalibrateDone;
@@ -406,10 +421,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		if(sendBasicAck(twilightCalibrateCommand,twilightCalibrateDone,makeFlatAckTime) == false)
 			return twilightCalibrateDone;
 	// Call pipeline to create master flat.
-		directoryString = status.getProperty("loci.file.fits.path");
-		if(directoryString.endsWith(System.getProperty("file.separator")) == false)
-			directoryString = directoryString.concat(System.getProperty("file.separator"));
-		if(makeMasterFlat(twilightCalibrateCommand,twilightCalibrateDone,directoryString) == false)
+		if(makeMasterFlat(twilightCalibrateCommand,twilightCalibrateDone,fitsDirectoryString) == false)
 			return twilightCalibrateDone;
 	// return done
 		twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_NO_ERROR);
@@ -445,6 +457,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * Method to load twilight calibration configuration data from the LOCI Properties file.
 	 * The following configuration properties are retrieved:
 	 * <ul>
+	 * <li>FITS filename directory
 	 * <li>frame overhead
 	 * <li>minimum exposure length
 	 * <li>maximum exposure length
@@ -467,6 +480,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * @see #loadCalibrationList
 	 * @see #loadState
 	 * @see #loadOffsetList
+	 * @see #fitsDirectoryString
 	 * @see #frameOverhead
 	 * @see #minExposureLength
 	 * @see #maxExposureLength
@@ -492,6 +506,10 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 			timeOfNightString = LIST_KEY_SUNRISE_STRING;
 		try
 		{
+		// fits data directory
+			fitsDirectoryString = status.getProperty("loci.file.fits.path");
+			if(fitsDirectoryString.endsWith(System.getProperty("file.separator")) == false)
+				fitsDirectoryString = fitsDirectoryString.concat(System.getProperty("file.separator"));
 		// frame overhead
 			propertyName = LIST_KEY_STRING+"frame_overhead";
 			frameOverhead = status.getPropertyInteger(propertyName);
@@ -849,7 +867,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 *     (it is too light for this filter/bin combo). If so, try the next calibration.
 	 * <li>We update the  last filter sensitivity and last binning factor.
 	 * <li><b>sendBasicAck</b> is called to stop the client timing out before the config is completed.
-	 * <li><b>doConfig</b> is called for the relevant binning factor/slides/filter set to be setup.
+	 * <li><b>doConfig</b> is called for the relevant binning factor/filter set to be setup.
 	 * <li><b>sendBasicAck</b> is called to stop the client timing out before the first frame is completed.
 	 * <li><b>doOffsetList</b> is called to go through the telescope RA/DEC offsets and take frames at
 	 * 	each offset.
@@ -1021,17 +1039,33 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 
 	/**
 	 * Method to setup the CCD configuration with the specified binning factor, and specified filter.
+	 * <ul>
+	 * <li>We call <b>sendSetImageDimensionsCommand</b> to set the CCD binning.
+	 * <li>We call <b>sendSetFilterPositionByNameCommand</b> to move the filter wheel to the desired filter.
+	 * <li>We get the overall instrument focus offset from the "loci.focus.offset" status property.
+	 * <li>We get the filter Id from it's name using he status method <b>getFilterIdName</b>.
+	 * <li>We get the filter's optical depth using the status method <b>getFilterIdOpticalThickness</b>.
+	 * <li>We add the filter offsets together and offset the telescope focus using the <b>setFocusOffset</b> method.
+	 * <li>We increment the unique config id by calling status's <b>incConfigId</b> method.
+	 * <li>We set the configuration name in the status object by calling the <b>setConfigName</b> method.
+	 *     This is used when constructing the FITS headers.
+	 * </ul>
 	 * @param twilightCalibrateCommand The instance of TWILIGHT_CALIBRATE we are currently running.
 	 * @param twilightCalibrateDone The instance of TWILIGHT_CALIBRATE_DONE to fill in with errors we receive.
 	 * @param bin The binning factor to use.
 	 * @param filter The type of filter to use.
 	 * @return The method returns true if the calibration was done successfully, false if an error occured.
 	 * @see #loci
+	 * @see #status
 	 * @see #sendSetImageDimensionsCommand
 	 * @see ngat.loci.Loci#getStatus
 	 * @see ngat.loci.Loci#error
 	 * @see ngat.loci.Loci#log
+	 * @see ngat.loci.LociStatus#getPropertyFloat
+	 * @see ngat.loci.LociStatus#getFilterIdName
+	 * @see ngat.loci.LociStatus#getFilterIdOpticalThickness
 	 * @see ngat.loci.LociStatus#incConfigId
+	 * @see ngat.loci.LociStatus#setConfigName
 	 * @see ngat.loci.LociConstants#LOCI_ERROR_CODE_BASE
 	 * @see ngat.loci.LociConstants#LOCI_ERROR_CODE_NO_ERROR
 	 * @see ngat.loci.CommandImplementation#testAbort
@@ -1201,6 +1235,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * @return The method returns true when the offset list is terminated, false if an error occured.
 	 * @see #offsetList
 	 * @see #doFrame
+	 * @sse #loci
 	 * @see Loci#sendISSCommand
 	 * @see ngat.message.ISS_INST.OFFSET_RA_DEC
 	 */
@@ -1254,25 +1289,23 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * The method that does a calibration frame with the current configuration. The following is performed 
 	 * in a while loop, that is terminated when a good frame has been taken.
 	 * <ul>
-	 * <li>The FITS headers setup from the current configuration.
-	 * <li>Some FITS headers are got from the ISS.
-	 * <li>clearFitsHeaders is called.
-	 * <li>setFitsHeaders is called to get some FITS headers from the properties files and add them to the 
+	 * <li><b>clearFitsHeaders</b> is called.
+	 * <li><b>setFitsHeaders</b> is called to get some FITS headers from the properties files and add them to the 
 	 *     CCD Flask API.
-	 * <li>setFilterWheelFitsHeaders is called to get the current filter wheel position, 
+	 * <li><b>setFilterWheelFitsHeaders</b> is called to get the current filter wheel position, 
 	 *     and set some FITS headers based on this.
 	 * <li><b>testAbort</b> is called to see if this command implementation has been aborted.
-	 * <li>We call setPerFrameFitsHeaders to set the per-frame FITS headers.
-	 * <li>getFitsHeadersFromISS is called to gets some FITS headers from the ISS (RCS). 
+	 * <li>We call <b>setPerFrameFitsHeaders</b> to set the per-frame FITS headers.
+	 * <li><b>getFitsHeadersFromISS</b> is called to gets some FITS headers from the ISS (RCS). 
 	 *          These are sent on to the CCD Flask API.
-	 * <li>It performs an exposure by calling sendTakeExposureCommand.
+	 * <li>It performs an exposure by calling <b>sendTakeExposureCommand</b>.
 	 * <li>The last exposure length variable is updated.
 	 * <li>An instance of TWILIGHT_CALIBRATE_ACK is sent back to the client using <b>sendTwilightCalibrateAck</b>.
 	 * <li><b>testAbort</b> is called to see if this command implementation has been aborted.
 	 * <li><b>reduceCalibrate</b> is called to pass the frame to the Real Time Data Pipeline for processing.
 	 * <li>The frame state is derived from the returned mean counts.
 	 * <li>If the frame state was good, the raw frame and DpRt reduced (if different) are renamed into
-	 * 	the standard FITS filename using lociFilename, by incrementing the run number.
+	 * 	the standard FITS filename using <b>getFitsFilename</b> and <b>getReducedFitsFilename</b>.
 	 * <li><b>testAbort</b> is called to see if this command implementation has been aborted.
 	 * <li>The optimal exposure Length is calculated by multiplying by the 
 	 *     ratio of best mean counts over mean counts.
@@ -1298,11 +1331,14 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * @param filter The type of filter to use. Passed through for logging purposes.
 	 * @return The method returns true if no errors occured, false if an error occured.
 	 * @see CommandImplementation#testAbort
+	 * @see HardwareImplementation#clearFitsHeaders
 	 * @see HardwareImplementation#setFitsHeaders
 	 * @see HardwareImplementation#getFitsHeadersFromISS
 	 * @see #sendTwilightCalibrateAck
 	 * @see #sendTwilightCalibrateDpAck
 	 * @see CALIBRATEImplementation#reduceCalibrate
+	 * @see #getFitsFilename
+	 * @see #getReducedFitsFilename
 	 * @see #exposureLength
 	 * @see #lastExposureLength
 	 * @see #minExposureLength
@@ -1319,6 +1355,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 				  TWILIGHT_CALIBRATE_DONE twilightCalibrateDone,int bin,String filter)
 	{
 		File temporaryFile = null;
+		File newFile = null;
 		String filename = null;
 		String reducedFilename = null;
 		long now;
@@ -1444,83 +1481,92 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 					twilightCalibrateDone.setSuccessful(false);
 					return false;
 				}
-			// diddly
-			// get a filename to store frame in
-				//oFilename.nextRunNumber();
-				//filename = oFilename.getFilename();
-				//newFile = new File(filename);
+			// get a filename to store the frame in
+				try
+				{
+					filename = getFitsFilename();
+				}
+				catch(Exception e)
+				{
+					String errorString = new String(twilightCalibrateCommand.getId()+
+					":doFrame:Getting a new FITS filename failed:");
+					loci.error(this.getClass().getName()+":"+errorString,e);
+					twilightCalibrateDone.setFilename(temporaryFITSFilename);
+					twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2308);
+					twilightCalibrateDone.setErrorString(errorString+e);
+					twilightCalibrateDone.setSuccessful(false);
+					return false;
+				}
+				newFile = new File(filename);
 			// rename temporary filename to filename
-				//if(temporaryFile.renameTo(newFile) == false)
-				//{
-				//	String errorString = new String(twilightCalibrateCommand.getId()+
-				//		":Failed to rename '"+temporaryFile.toString()+"' to '"+
-				//		newFile.toString()+"'.");
+				if(temporaryFile.renameTo(newFile) == false)
+				{
+					String errorString = new String(twilightCalibrateCommand.getId()+
+						":Failed to rename '"+temporaryFile.toString()+"' to '"+
+						newFile.toString()+"'.");
 
-				//	loci.error(this.getClass().getName()+":doFrame:"+errorString);
-				//	twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2315);
-				//	twilightCalibrateDone.setErrorString(errorString);
-				//	twilightCalibrateDone.setSuccessful(false);
-				//	return false;
-				//}
+					loci.error(this.getClass().getName()+":doFrame:"+errorString);
+					twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2315);
+					twilightCalibrateDone.setErrorString(errorString);
+					twilightCalibrateDone.setSuccessful(false);
+					return false;
+				}
 			// log rename
-				//loci.log(Logging.VERBOSITY_VERBOSE,
-				//      "Command:"+twilightCalibrateCommand.getId()+
-				//      ":doFrame:"+"bin:"+bin+
-				//      ":filter:"+filter+
-				//      ":Exposure raw frame rename:renamed "+temporaryFile+" to "+newFile+".");
+				loci.log(Logging.VERBOSITY_VERBOSE,
+				      "Command:"+twilightCalibrateCommand.getId()+
+				      ":doFrame:"+"bin:"+bin+
+				      ":filter:"+filter+
+				      ":Exposure raw frame rename:renamed "+temporaryFile+" to "+newFile+".");
 			// reset twilight calibrate done's filename to renamed file
 			// in case pipelined reduced filename does not exist/cannot be renamed
-				//twilightCalibrateDone.setFilename(filename);
+				twilightCalibrateDone.setFilename(filename);
 			// real time pipelined processed file
-				//temporaryFile = new File(reducedFilename);
+				temporaryFile = new File(reducedFilename);
 			// does the temprary file exist? If it doesn't this is not an error,
 			// if the DpRt returned the same file it was passed in it will have already been renamed
-				//if(temporaryFile.exists())
-				//{
-				// get a filename to store pipelined processed frame in
-				//	try
-				//	{
-				//		lociFilename.setPipelineProcessing(FitsFilename.
-				//						PIPELINE_PROCESSING_FLAG_REAL_TIME);
-				//		filename = lociFilename.getFilename();
-				//		lociFilename.setPipelineProcessing(FitsFilename.
-				//						PIPELINE_PROCESSING_FLAG_NONE);
-				//	}
-				//	catch(Exception e)
-				//	{
-				//		String errorString = new String(twilightCalibrateCommand.getId()+
-				//					    ":doFrame:setPipelineProcessing failed:");
-				//		loci.error(this.getClass().getName()+":"+errorString,e);
-				//		twilightCalibrateDone.setFilename(reducedFilename);
-				//		twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2321);
-				//		twilightCalibrateDone.setErrorString(errorString+e);
-				//		twilightCalibrateDone.setSuccessful(false);
-				//		return false;
-				//	}
-				//	newFile = new File(filename);
+				if(temporaryFile.exists())
+				{
+					try
+					{
+						// Here the 'filename' we are passing in is the just generated
+						// LT FITS raw flat filename, and we are hoping to return
+						// a reduced version of that file with the pipeline processing flag set
+						filename = getReducedFitsFilename(filename);
+					}
+					catch(Exception e)
+					{
+						String errorString = new String(twilightCalibrateCommand.getId()+
+									    ":doFrame:getting reduced FITS filename failed:");
+						loci.error(this.getClass().getName()+":"+errorString,e);
+						twilightCalibrateDone.setFilename(reducedFilename);
+						twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2321);
+						twilightCalibrateDone.setErrorString(errorString+e);
+						twilightCalibrateDone.setSuccessful(false);
+						return false;
+					}
+					newFile = new File(filename);
 				// rename temporary filename to filename
-				//	if(temporaryFile.renameTo(newFile) == false)
-				//	{
-				//		String errorString = new String(twilightCalibrateCommand.getId()+
-				//			":Failed to rename '"+temporaryFile.toString()+"' to '"+
-				//			newFile.toString()+"'.");
-
-				//		loci.error(this.getClass().getName()+":doFrame:"+errorString);
-				//		twilightCalibrateDone.
-				//			setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2316);
-				//		twilightCalibrateDone.setErrorString(errorString);
-				//		twilightCalibrateDone.setSuccessful(false);
-				//		return false;
-				//	}// end if renameTo failed
+					if(temporaryFile.renameTo(newFile) == false)
+					{
+						String errorString = new String(twilightCalibrateCommand.getId()+
+							":Failed to rename '"+temporaryFile.toString()+"' to '"+
+							newFile.toString()+"'.");
+						loci.error(this.getClass().getName()+":doFrame:"+errorString);
+						twilightCalibrateDone.
+							setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2316);
+						twilightCalibrateDone.setErrorString(errorString);
+						twilightCalibrateDone.setSuccessful(false);
+						return false;
+					}// end if renameTo failed
 				// reset twilight calibrate done's pipelined processed filename
-				//	twilightCalibrateDone.setFilename(filename);
+					twilightCalibrateDone.setFilename(filename);
 				// log rename
-				//	loci.log(Logging.VERBOSITY_VERBOSE,
-				//	      "Command:"+twilightCalibrateCommand.getId()+
-				//	      ":doFrame:"+"bin:"+bin+
-				//	      ":filter:"+filter+
-				//	      ":Exposure DpRt frame rename:renamed "+temporaryFile+" to "+newFile+".");
-				//}// end if temporary file exists
+					loci.log(Logging.VERBOSITY_VERBOSE,
+					      "Command:"+twilightCalibrateCommand.getId()+
+					      ":doFrame:"+"bin:"+bin+
+					      ":filter:"+filter+
+					      ":Exposure DpRt frame rename:renamed "+temporaryFile+" to "+newFile+".");
+				}// end if temporary file exists
 			}// end if frameState was OK
 		// Test abort status.
 			if(testAbort(twilightCalibrateCommand,twilightCalibrateDone) == true)
@@ -1691,7 +1737,81 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		loci.log(Logging.VERBOSITY_INTERMEDIATE,"sendTakeExposureCommand:finished with filename:"+filename);
 		return filename;
 	}
-	
+
+	/**
+	 * Get a LT FITS image filename from the FitsFilenameServer instance.
+	 * @exception Exception Thrown if the call to the filename-server fails.
+	 * @see #fitsDirectoryString
+	 * @see #multrunStateFlag
+	 * @see Loci#getFitsFilenameServer
+	 * @see ngat.fits.FitsFilenameServer#setExposureCode
+	 * @see ngat.fits.FitsFilename#EXPOSURE_CODE_SKY_FLAT
+	 * @see ngat.fits.FitsFilenameServer#MULTRUN_FLAG_NEXT
+	 */
+	protected String getFitsFilename() throws Exception
+	{
+		FitsFilenameServer fitsFilenameServer = null;
+		String filename = null;
+		String filenameLeaf = null;
+
+		fitsFilenameServer = loci.getFitsFilenameServer();
+		// fitsFilenameServer connection details and instrument code have already been setup.
+		fitsFilenameServer.setExposureCode(FitsFilename.EXPOSURE_CODE_SKY_FLAT);
+		// multrunStateFlag should be MULTRUN_FLAG_START the first time we try to generate a filename
+		// for this twilight calibration, and MULTRUN_FLAG_NEXT for all subsequent filenames.
+		fitsFilenameServer.setMultrunFlag(multrunStateFlag);
+		multrunStateFlag = FitsFilenameServer.MULTRUN_FLAG_NEXT;
+		// fitsFilenameServer defaults the filename extension to FITS
+		//fitsFilenameServer.setFileExtension("fits");
+		fitsFilenameServer.run();
+		if(fitsFilenameServer.getRunException() != null)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":getFitsFilename:Failed to get a filename:",
+					    fitsFilenameServer.getRunException());
+
+		}
+		if(fitsFilenameServer.isReturnStatusOK() == false)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":getFitsFilename:Failed to get a filename:"+
+					    fitsFilenameServer.getReturnMessage());
+		}
+		// get the generated filename	
+		filenameLeaf = fitsFilenameServer.getReturnFilename();
+		// the FITS filename directory has been retrieved from the "loci.file.fits.path" and stored
+		// in fitsDirectoryString. It has had a directory terminator added if necessary ('/')
+		filename  = new String(fitsDirectoryString+filenameLeaf);
+		return filename;
+	}
+
+	/**
+	 * Using a raw LT FITS filename as a base, produce a reduced version of this FITS filename.
+	 * The raw FITS filename will be of the form: k_f_20250801_1_1_1_0.fits, and the reduced
+	 *  FITS filename needs to be of the form: k_f_20250801_1_1_1_1.fits,  the pipeline peocessing flag
+	 * being the last number in the filename, raw is '0', real-time reduced is '1'.
+	 * @param rawFilename The input raw FITS image filename of the form: k_f_20250801_1_1_1_0.fits.
+	 * @return The equivalent reduced FITS image filename of the form: k_f_20250801_1_1_1_1.fits.
+	 * @exception Exception Thrown if the rawFilename does not end with the raw pipeline processing flag
+	 *            (i.e. "_0.fits").
+	 */
+	protected String getReducedFitsFilename(String rawFilename) throws Exception
+	{
+		String newFilename = null;
+		int eIndex;
+		
+		// Simply check the filename ends in '_0.fits', and replace with '_1.fits'.
+		if(rawFilename.endsWith("_0.fits") == false)
+		{
+			throw new Exception(this.getClass().getName()+
+					    ":getReducedFitsFilename:Illegal input raw filename:"+rawFilename);
+		}
+		eIndex = rawFilename.lastIndexOf("_0.fits");
+		newFilename = rawFilename.substring(0,eIndex);
+		newFilename = newFilename.concat("_1.fits");
+		return newFilename;
+	}
+
 	/**
 	 * Method to send an instance of ACK back to the client. This stops the client timing out, whilst we
 	 * work out what calibration to attempt next.
