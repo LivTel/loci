@@ -128,12 +128,12 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 	 * the ISS. The OFFSET_FOCUS sent is the offset of Loci's focus from the nominal telescope focus.
 	 * @param id The Id is used as the OFFSET_FOCUS command's id.
 	 * @param focusOffset The focus offset needed.
-	 * @param configDone The instance of CONFIG_DONE. This is filled in with an error message if the
+	 * @param done The instance of COMMAND_DONE or sub-class. This is filled in with an error message if the
 	 * 	OFFSET_FOCUS fails.
 	 * @return The method returns true if the telescope attained the focus offset, otherwise false is
 	 * 	returned an telFocusDone is filled in with an error message.
 	 */
-	protected boolean setFocusOffset(String id,float focusOffset,CONFIG_DONE configDone)
+	protected boolean setFocusOffset(String id,float focusOffset,COMMAND_DONE done)
 	{
 		OFFSET_FOCUS focusOffsetCommand = null;
 		INST_TO_ISS_DONE instToISSDone = null;
@@ -148,9 +148,9 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 		{
 			loci.error(this.getClass().getName()+":focusOffset failed:"+focusOffset+":"+
 				   instToISSDone.getErrorString());
-			configDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1212);
-			configDone.setErrorString(instToISSDone.getErrorString());
-			configDone.setSuccessful(false);
+			done.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+1212);
+			done.setErrorString(instToISSDone.getErrorString());
+			done.setSuccessful(false);
 			return false;
 		}
 		return true;
