@@ -140,6 +140,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 		String filterIdName = null;
 		String filterTypeString = null;
 
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"setFocusOffset:Set focus offset to "+focusOffset+".");
 		focusOffsetCommand = new OFFSET_FOCUS(id);
 	// set the commands focus offset
 		focusOffsetCommand.setFocusOffset(focusOffset);
@@ -153,6 +154,7 @@ public class HardwareImplementation extends CommandImplementation implements JMS
 			done.setSuccessful(false);
 			return false;
 		}
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"setFocusOffset:Focus offset set to "+focusOffset+".");
 		return true;
 	}	
 

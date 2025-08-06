@@ -214,12 +214,16 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 			return configDone;
 		}
 	// actually issue ISS OFFSET_FOCUS commmand to telescope/ISS. 
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"Command:"+configCommand.getClass().getName()+
+			 ":Calling setFocusOffset with focus offset "+focusOffset+".");
 		if(setFocusOffset(configCommand.getId(),focusOffset,configDone) == false)
 			return configDone;
 	// Increment unique config ID.
 	// This is queried when saving FITS headers to get the CONFIGID value.
 		try
 		{
+			loci.log(Logging.VERBOSITY_INTERMEDIATE,"Command:"+configCommand.getClass().getName()+
+				 ":Incrementing Config Id.");
 			status.incConfigId();
 		}
 		catch(Exception e)
@@ -231,6 +235,8 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 			configDone.setSuccessful(false);
 			return configDone;
 		}
+		loci.log(Logging.VERBOSITY_INTERMEDIATE,"Command:"+configCommand.getClass().getName()+
+			 ":Caching Config status data.");
 	// Store name of configuration used in status object
 	// This is queried when saving FITS headers to get the CONFNAME value.
 		status.setConfigName(configName);
