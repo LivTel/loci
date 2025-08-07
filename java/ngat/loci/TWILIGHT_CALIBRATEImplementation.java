@@ -211,7 +211,8 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	protected String fitsDirectoryString = null;
 	/**
 	 * Filename used to save FITS frames to, until they are determined to contain valid data
-	 * (the counts in them are within limits).
+	 * (the counts in them are within limits). Note this only be the leaf of the filename path, as the loci-ctrl
+	 * python layer adds the default data path to the generated filename.
 	 */
 	private String temporaryFITSFilename = null;
 	/**
@@ -520,6 +521,8 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 			propertyName = LIST_KEY_STRING+"max_exposure_time";
 			maxExposureLength = status.getPropertyInteger(propertyName);
 		// temporary FITS filename
+		// Note this only be the leaf of the filename path, as the loci-ctrl
+		// python layer adds the default data path to the generated filename.
 			propertyName = LIST_KEY_STRING+"file.tmp";
 			temporaryFITSFilename = status.getProperty(propertyName);
 		// saved state filename
@@ -1467,13 +1470,13 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 			if(frameState == FRAME_STATE_OK)
 			{
 			// raw frame
-				temporaryFile = new File(temporaryFITSFilename);
+				temporaryFile = new File(fitsDirectoryString+temporaryFITSFilename);
 			// does the temprary file exist?
 				if(temporaryFile.exists() == false)
 				{
 					String errorString = new String(twilightCalibrateCommand.getId()+
-								":File does not exist:"+temporaryFITSFilename);
-
+								":File does not exist:"+
+								fitsDirectoryString+temporaryFITSFilename);
 					loci.error(this.getClass().getName()+
 						":doFrame:"+errorString);
 					twilightCalibrateDone.setErrorNum(LociConstants.LOCI_ERROR_CODE_BASE+2314);
@@ -1678,7 +1681,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * <li>We return the generated exposure filename.
 	 * </ul>
 	 * @param exposureLength The dark exposure length in milliseconds.
-	 * @return The generated FITS filename is returned.
+	 * @return The generated FITS filename is returned (including the FITS data pathname (directory)).
 	 * @see #getCCDFlaskConnectionData
 	 * @see #status
 	 * @see #ccdFlaskHostname
