@@ -15,12 +15,14 @@ To build a docker container do the following (on an LT development machine, wher
 
 This saved docker tarball can then be copied to loci1 (the Loci control computer) as follows:
 
-* **scp -C loci_java_layer_image.tar admin@loci1:images**
+* **gzip loci_java_layer_image.tar**
+* **scp -C loci_java_layer_image.tar.gz user@loci1:/loci-containers**
 
 The docker can then be installed / loaded into the local system as follows:
 
-* **ssh admin@loci1**
-* **cd images**
+* **ssh user@loci1**
+* **cd /loci-containers**
+* **gunzip loci_java_layer_image.tar.gz**
 * **docker load -i loci_java_layer_image.tar**
 
 You now need to install the Loci Java layer config files before starting the docker.
