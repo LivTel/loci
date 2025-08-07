@@ -37,13 +37,13 @@ To generate a tarball containing the Loci Java layer config files, on an LT deve
 
 The config tarball ends up at: ~dev/public_html/loci/deployment/loci_config_deployment.tar.gz . Copy the config tarball to loci1:
 
-* **scp -C ~dev/public_html/loci/deployment/loci_config_deployment.tar.gz admin@loci1:images**
+* **scp -C ~dev/public_html/loci/deployment/loci_config_deployment.tar.gz user@loci1:Downloads**
 
 Then install the config tarball as follows:
 
-* **ssh admin@loci1**
+* **ssh user@loci1**
 * **cd /**
-* **sudo tar xvfz /home/admin/images/loci_config_deployment.tar.gz** 
+* **sudo tar xvfz /home/user/Downloads/loci_config_deployment.tar.gz** 
 * **sudo chown root:root /** This fixes root's permissions.
 
 ### Starting the Loci Java layer
