@@ -1235,7 +1235,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 	 * @return The method returns true when the offset list is terminated, false if an error occured.
 	 * @see #offsetList
 	 * @see #doFrame
-	 * @sse #loci
+	 * @see #loci
 	 * @see Loci#sendISSCommand
 	 * @see ngat.message.ISS_INST.OFFSET_RA_DEC
 	 */
@@ -1740,6 +1740,8 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 
 	/**
 	 * Get a LT FITS image filename from the FitsFilenameServer instance.
+	 * @return A FITS filename, including the path from the fitsDirectoryString, and the leaf filename from a 
+	 *         call to the FITS filename-server.
 	 * @exception Exception Thrown if the call to the filename-server fails.
 	 * @see #fitsDirectoryString
 	 * @see #multrunStateFlag

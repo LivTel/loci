@@ -813,7 +813,8 @@ public class Loci
 	 *     "loci.file.fits.instrument_code" property.
 	 * <li>Construct the fitsFilenameServer instance, and set the configured properties.
 	 * </ul>
-	 * @exception Thrown if the configuration proeprties cannot be retrieved / parsed, or have an illegal value.
+	 * @exception Exception Thrown if the configuration proeprties cannot be retrieved / parsed, 
+	 *            or have an illegal value.
 	 * @see #status
 	 * @see #fitsFilenameServer
 	 * @see LociStatus#getProperty
