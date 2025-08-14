@@ -1501,6 +1501,12 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 					return false;
 				}
 				newFile = new File(filename);
+			// log rename
+				loci.log(Logging.VERBOSITY_VERBOSE,
+				      "Command:"+twilightCalibrateCommand.getId()+
+				      ":doFrame:"+"bin:"+bin+
+				      ":filter:"+filter+
+				      ":Exposure raw frame rename:renaming "+temporaryFile+" to "+newFile+".");
 			// rename temporary filename to filename
 				if(temporaryFile.renameTo(newFile) == false)
 				{
@@ -1514,12 +1520,6 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 					twilightCalibrateDone.setSuccessful(false);
 					return false;
 				}
-			// log rename
-				loci.log(Logging.VERBOSITY_VERBOSE,
-				      "Command:"+twilightCalibrateCommand.getId()+
-				      ":doFrame:"+"bin:"+bin+
-				      ":filter:"+filter+
-				      ":Exposure raw frame rename:renamed "+temporaryFile+" to "+newFile+".");
 			// reset twilight calibrate done's filename to renamed file
 			// in case pipelined reduced filename does not exist/cannot be renamed
 				twilightCalibrateDone.setFilename(filename);
@@ -1548,6 +1548,12 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 						return false;
 					}
 					newFile = new File(filename);
+				// log rename
+					loci.log(Logging.VERBOSITY_VERBOSE,
+					      "Command:"+twilightCalibrateCommand.getId()+
+					      ":doFrame:"+"bin:"+bin+
+					      ":filter:"+filter+
+					      ":Exposure DpRt frame rename:renaming "+temporaryFile+" to "+newFile+".");
 				// rename temporary filename to filename
 					if(temporaryFile.renameTo(newFile) == false)
 					{
@@ -1563,12 +1569,6 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 					}// end if renameTo failed
 				// reset twilight calibrate done's pipelined processed filename
 					twilightCalibrateDone.setFilename(filename);
-				// log rename
-					loci.log(Logging.VERBOSITY_VERBOSE,
-					      "Command:"+twilightCalibrateCommand.getId()+
-					      ":doFrame:"+"bin:"+bin+
-					      ":filter:"+filter+
-					      ":Exposure DpRt frame rename:renamed "+temporaryFile+" to "+newFile+".");
 				}// end if temporary file exists
 			}// end if frameState was OK
 		// Test abort status.
@@ -1759,6 +1759,8 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		String filename = null;
 		String filenameLeaf = null;
 
+		loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+":getFitsFilename:Started.");
+		// get FITS filename server instance
 		fitsFilenameServer = loci.getFitsFilenameServer();
 		// fitsFilenameServer connection details and instrument code have already been setup.
 		fitsFilenameServer.setExposureCode(FitsFilename.EXPOSURE_CODE_SKY_FLAT);
@@ -1766,8 +1768,8 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		// for this twilight calibration, and MULTRUN_FLAG_NEXT for all subsequent filenames.
 		fitsFilenameServer.setMultrunFlag(multrunStateFlag);
 		multrunStateFlag = FitsFilenameServer.MULTRUN_FLAG_NEXT;
-		// fitsFilenameServer defaults the filename extension to FITS
-		//fitsFilenameServer.setFileExtension("fits");
+		// The filename extension is always fits
+		fitsFilenameServer.setFileExtension("fits");
 		fitsFilenameServer.run();
 		if(fitsFilenameServer.getRunException() != null)
 		{
@@ -1784,9 +1786,11 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		}
 		// get the generated filename	
 		filenameLeaf = fitsFilenameServer.getReturnFilename();
+		loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+":getFitsFilename:filename leaf is:"+filenameLeaf);
 		// the FITS filename directory has been retrieved from the "loci.file.fits.path" and stored
 		// in fitsDirectoryString. It has had a directory terminator added if necessary ('/')
 		filename  = new String(fitsDirectoryString+filenameLeaf);
+		loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+":getFitsFilename:returned filename is:"+filename);
 		return filename;
 	}
 
@@ -1805,6 +1809,7 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		String newFilename = null;
 		int eIndex;
 		
+		loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+":getReducedFitsFilename:raw filename is:"+rawFilename);
 		// Simply check the filename ends in '_0.fits', and replace with '_1.fits'.
 		if(rawFilename.endsWith("_0.fits") == false)
 		{
@@ -1814,6 +1819,8 @@ public class TWILIGHT_CALIBRATEImplementation extends CALIBRATEImplementation im
 		eIndex = rawFilename.lastIndexOf("_0.fits");
 		newFilename = rawFilename.substring(0,eIndex);
 		newFilename = newFilename.concat("_1.fits");
+		loci.log(Logging.VERBOSITY_VERBOSE,this.getClass().getName()+":getReducedFitsFilename:reduced filename is:"+
+			 newFilename);
 		return newFilename;
 	}
 
