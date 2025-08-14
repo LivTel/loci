@@ -101,6 +101,7 @@ public class CONFIGImplementation extends HardwareImplementation implements JMSC
 	 * @see ngat.loci.Loci#getStatus
 	 * @see ngat.loci.LociStatus#incConfigId
 	 * @see ngat.loci.LociStatus#setConfigName
+	 * @see ngat.loci.LociStatus#setConfigBinning
 	 * @see ngat.loci.HardwareImplementation#sendSetFilterPositionByNameCommand
 	 * @see ngat.loci.HardwareImplementation#setFocusOffset
 	 * @see ngat.phase2.LociConfig
