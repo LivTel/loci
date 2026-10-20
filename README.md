@@ -6,9 +6,13 @@ This is a simple imaging camera (Andor Ikon-L 936 CCD camera) ,with a Starlight 
 
 This repository currently contains the upper robotic Java layer that interfaces with the Liverpool Telescope RCS.
 
-The lower-level CCD control software API and filter wheel control API are provided by the NRT, and their repository is currently located here:
+The lower-level CCD control software python API and filter wheel control python API were developed as part of the NRT project, and the gitlab repository was originally located here:
 
 https://gitlab.services.newrobotictelescope.org/nrt-crew/ljmu/loci-ctrl/
+
+This has now been ported in github, so the current loci-ctrl repository is here:
+
+https://github.com/LivTel/loci-ctrl/
 
 The low level software uses a cloud-based filename server to generate unique LT filenames. The code for that is here:
 
